@@ -36,6 +36,25 @@ class LinkedListHeadOnly:
         current.next = new_node
         self.size += 1
 
+    def insert(self, data, index):
+        """Insert node at specific index. O(n)"""
+        if index < 0 or index > self.size:
+            return False
+        if index == 0:
+            self.prepend(data)
+            return True
+        if index == self.size:
+            self.append(data)
+            return True
+        new_node = Node(data)
+        current = self.head
+        for _ in range(index - 1):
+            current = current.next
+        new_node.next = current.next
+        current.next = new_node
+        self.size += 1
+        return True
+
     def delete(self, data):
         """Delete first node with matching data. O(n)"""
         if self.head is None:
@@ -52,6 +71,48 @@ class LinkedListHeadOnly:
                 return True
             current = current.next
         return False
+
+    def delete_first(self):
+        """Delete node from the beginning. O(1)"""
+        if self.head is None:
+            return None
+        data = self.head.data
+        self.head = self.head.next
+        self.size -= 1
+        return data
+
+    def delete_last(self):
+        """Delete node from the end. O(n) - must traverse to find second-to-last"""
+        if self.head is None:
+            return None
+        if self.head.next is None:
+            data = self.head.data
+            self.head = None
+            self.size -= 1
+            return data
+        current = self.head
+        while current.next.next:
+            current = current.next
+        data = current.next.data
+        current.next = None
+        self.size -= 1
+        return data
+
+    def delete_at(self, index):
+        """Delete node at specific index. O(n)"""
+        if index < 0 or index >= self.size:
+            return None
+        if index == 0:
+            return self.delete_first()
+        if index == self.size - 1:
+            return self.delete_last()
+        current = self.head
+        for _ in range(index - 1):
+            current = current.next
+        data = current.next.data
+        current.next = current.next.next
+        self.size -= 1
+        return data
 
     def search(self, data):
         """Search for a node with matching data. O(n)"""
@@ -107,6 +168,25 @@ class LinkedListHeadTail:
             self.tail = new_node
         self.size += 1
 
+    def insert(self, data, index):
+        """Insert node at specific index. O(n)"""
+        if index < 0 or index > self.size:
+            return False
+        if index == 0:
+            self.prepend(data)
+            return True
+        if index == self.size:
+            self.append(data)
+            return True
+        new_node = Node(data)
+        current = self.head
+        for _ in range(index - 1):
+            current = current.next
+        new_node.next = current.next
+        current.next = new_node
+        self.size += 1
+        return True
+
     def delete(self, data):
         """Delete first node with matching data. O(n)"""
         if self.head is None:
@@ -131,6 +211,52 @@ class LinkedListHeadTail:
                 return True
             current = current.next
         return False
+
+    def delete_first(self):
+        """Delete node from the beginning. O(1)"""
+        if self.head is None:
+            return None
+        data = self.head.data
+        if self.head == self.tail:
+            self.head = None
+            self.tail = None
+        else:
+            self.head = self.head.next
+        self.size -= 1
+        return data
+
+    def delete_last(self):
+        """Delete node from the end. O(n) - must traverse to find second-to-last"""
+        if self.head is None:
+            return None
+        data = self.tail.data
+        if self.head == self.tail:
+            self.head = None
+            self.tail = None
+        else:
+            current = self.head
+            while current.next != self.tail:
+                current = current.next
+            current.next = None
+            self.tail = current
+        self.size -= 1
+        return data
+
+    def delete_at(self, index):
+        """Delete node at specific index. O(n)"""
+        if index < 0 or index >= self.size:
+            return None
+        if index == 0:
+            return self.delete_first()
+        if index == self.size - 1:
+            return self.delete_last()
+        current = self.head
+        for _ in range(index - 1):
+            current = current.next
+        data = current.next.data
+        current.next = current.next.next
+        self.size -= 1
+        return data
 
     def search(self, data):
         """Search for a node with matching data. O(n)"""
@@ -197,6 +323,27 @@ class DoublyLinkedList:
             self.tail = new_node
         self.size += 1
 
+    def insert(self, data, index):
+        """Insert node at specific index. O(n)"""
+        if index < 0 or index > self.size:
+            return False
+        if index == 0:
+            self.prepend(data)
+            return True
+        if index == self.size:
+            self.append(data)
+            return True
+        new_node = DoublyNode(data)
+        current = self.head
+        for _ in range(index):
+            current = current.next
+        new_node.prev = current.prev
+        new_node.next = current
+        current.prev.next = new_node
+        current.prev = new_node
+        self.size += 1
+        return True
+
     def delete(self, data):
         """Delete first node with matching data. O(n)"""
         current = self.head
@@ -219,7 +366,21 @@ class DoublyLinkedList:
             current = current.next
         return False
 
-    def delete_from_tail(self):
+    def delete_first(self):
+        """Delete node from the beginning. O(1)"""
+        if self.head is None:
+            return None
+        data = self.head.data
+        if self.head == self.tail:
+            self.head = None
+            self.tail = None
+        else:
+            self.head = self.head.next
+            self.head.prev = None
+        self.size -= 1
+        return data
+
+    def delete_last(self):
         """Delete node from the end. O(1) - advantage of doubly linked"""
         if self.tail is None:
             return None
@@ -230,6 +391,23 @@ class DoublyLinkedList:
         else:
             self.tail = self.tail.prev
             self.tail.next = None
+        self.size -= 1
+        return data
+
+    def delete_at(self, index):
+        """Delete node at specific index. O(n)"""
+        if index < 0 or index >= self.size:
+            return None
+        if index == 0:
+            return self.delete_first()
+        if index == self.size - 1:
+            return self.delete_last()
+        current = self.head
+        for _ in range(index):
+            current = current.next
+        data = current.data
+        current.prev.next = current.next
+        current.next.prev = current.prev
         self.size -= 1
         return data
 
@@ -289,31 +467,63 @@ def test_linked_list_head_only():
     print(f"   After appending 4, 5: {ll}")
     print(f"   Length: {len(ll)}")
 
+    # Test insert
+    print("\n4. Testing insert():")
+    print(f"   Before: {ll}")
+    ll.insert(99, 0)  # Insert at head
+    print(f"   After insert(99, 0) [head]: {ll}")
+    ll.insert(88, len(ll))  # Insert at tail
+    print(f"   After insert(88, {len(ll)-1}) [tail]: {ll}")
+    ll.insert(77, 3)  # Insert at middle
+    print(f"   After insert(77, 3) [middle]: {ll}")
+    result = ll.insert(66, 100)  # Invalid index
+    print(f"   insert(66, 100) returned: {result}")
+
     # Test search
-    print("\n4. Testing search():")
+    print("\n5. Testing search():")
     node = ll.search(3)
     print(f"   search(3): Found node with data = {node.data if node else 'None'}")
-    node = ll.search(99)
-    print(f"   search(99): {node}")
+    node = ll.search(999)
+    print(f"   search(999): {node}")
 
-    # Test delete
-    print("\n5. Testing delete():")
+    # Test delete_first
+    print("\n6. Testing delete_first():")
     print(f"   Before: {ll}")
-    ll.delete(1)  # Delete head
-    print(f"   After delete(1) [head]: {ll}")
-    ll.delete(3)  # Delete middle
-    print(f"   After delete(3) [middle]: {ll}")
-    ll.delete(5)  # Delete tail
-    print(f"   After delete(5) [tail]: {ll}")
-    result = ll.delete(99)  # Delete non-existent
-    print(f"   delete(99) returned: {result}")
+    removed = ll.delete_first()
+    print(f"   Removed: {removed}, After: {ll}")
+
+    # Test delete_last
+    print("\n7. Testing delete_last():")
+    print(f"   Before: {ll}")
+    removed = ll.delete_last()
+    print(f"   Removed: {removed}, After: {ll}")
+
+    # Test delete_at
+    print("\n8. Testing delete_at():")
+    print(f"   Before: {ll}")
+    removed = ll.delete_at(2)  # Delete middle
+    print(f"   delete_at(2) removed: {removed}, After: {ll}")
+    removed = ll.delete_at(0)  # Delete head
+    print(f"   delete_at(0) removed: {removed}, After: {ll}")
+    removed = ll.delete_at(100)  # Invalid index
+    print(f"   delete_at(100) returned: {removed}")
+
+    # Test delete by value
+    print("\n9. Testing delete():")
+    print(f"   Before: {ll}")
+    ll.delete(3)
+    print(f"   After delete(3): {ll}")
+    result = ll.delete(999)
+    print(f"   delete(999) returned: {result}")
 
     # Test edge case: delete until empty
-    print("\n6. Testing delete until empty:")
-    ll.delete(2)
-    ll.delete(4)
+    print("\n10. Testing delete until empty:")
+    while not ll.is_empty():
+        ll.delete_first()
     print(f"   After deleting all: {ll}")
     print(f"   is_empty(): {ll.is_empty()}")
+    print(f"   delete_first() on empty: {ll.delete_first()}")
+    print(f"   delete_last() on empty: {ll.delete_last()}")
 
 
 def test_linked_list_head_tail():
@@ -345,37 +555,63 @@ def test_linked_list_head_tail():
     print(f"   After appending 4, 5: {ll}")
     print(f"   head.data: {ll.head.data}, tail.data: {ll.tail.data}")
 
+    # Test insert
+    print("\n4. Testing insert():")
+    print(f"   Before: {ll}")
+    ll.insert(99, 0)  # Insert at head
+    print(f"   After insert(99, 0) [head]: {ll}")
+    print(f"   head.data: {ll.head.data}, tail.data: {ll.tail.data}")
+    ll.insert(88, len(ll))  # Insert at tail
+    print(f"   After insert(88, {len(ll)-1}) [tail]: {ll}")
+    print(f"   head.data: {ll.head.data}, tail.data: {ll.tail.data}")
+    ll.insert(77, 3)  # Insert at middle
+    print(f"   After insert(77, 3) [middle]: {ll}")
+
     # Test search
-    print("\n4. Testing search():")
+    print("\n5. Testing search():")
     node = ll.search(3)
     print(f"   search(3): Found node with data = {node.data if node else 'None'}")
-    node = ll.search(99)
-    print(f"   search(99): {node}")
+    node = ll.search(999)
+    print(f"   search(999): {node}")
 
-    # Test delete
-    print("\n5. Testing delete():")
+    # Test delete_first
+    print("\n6. Testing delete_first():")
     print(f"   Before: {ll}")
-    ll.delete(1)  # Delete head
-    print(f"   After delete(1) [head]: {ll}")
+    removed = ll.delete_first()
+    print(f"   Removed: {removed}, After: {ll}")
     print(f"   head.data: {ll.head.data}, tail.data: {ll.tail.data}")
 
-    ll.delete(3)  # Delete middle
-    print(f"   After delete(3) [middle]: {ll}")
-
-    ll.delete(5)  # Delete tail
-    print(f"   After delete(5) [tail]: {ll}")
+    # Test delete_last
+    print("\n7. Testing delete_last():")
+    print(f"   Before: {ll}")
+    removed = ll.delete_last()
+    print(f"   Removed: {removed}, After: {ll}")
     print(f"   head.data: {ll.head.data}, tail.data: {ll.tail.data}")
 
-    # Test single element case
-    print("\n6. Testing single element edge case:")
-    ll.delete(2)
-    print(f"   After delete(2): {ll}")
-    print(f"   head: {ll.head.data if ll.head else None}, tail: {ll.tail.data if ll.tail else None}")
+    # Test delete_at
+    print("\n8. Testing delete_at():")
+    print(f"   Before: {ll}")
+    removed = ll.delete_at(2)  # Delete middle
+    print(f"   delete_at(2) removed: {removed}, After: {ll}")
+    removed = ll.delete_at(0)  # Delete head
+    print(f"   delete_at(0) removed: {removed}, After: {ll}")
+    print(f"   head.data: {ll.head.data}, tail.data: {ll.tail.data}")
 
-    ll.delete(4)
-    print(f"   After delete(4) [last element]: {ll}")
-    print(f"   head: {ll.head}, tail: {ll.tail}")
+    # Test delete by value
+    print("\n9. Testing delete():")
+    print(f"   Before: {ll}")
+    ll.delete(3)
+    print(f"   After delete(3): {ll}")
+
+    # Test edge case: delete until empty
+    print("\n10. Testing delete until empty:")
+    while not ll.is_empty():
+        ll.delete_first()
+    print(f"   After deleting all: {ll}")
     print(f"   is_empty(): {ll.is_empty()}")
+    print(f"   head: {ll.head}, tail: {ll.tail}")
+    print(f"   delete_first() on empty: {ll.delete_first()}")
+    print(f"   delete_last() on empty: {ll.delete_last()}")
 
 
 def test_doubly_linked_list():
@@ -407,54 +643,74 @@ def test_doubly_linked_list():
     print(f"   After appending 4, 5: {dll}")
     print(f"   head.data: {dll.head.data}, tail.data: {dll.tail.data}")
 
+    # Test insert
+    print("\n4. Testing insert():")
+    print(f"   Before: {dll}")
+    dll.insert(99, 0)  # Insert at head
+    print(f"   After insert(99, 0) [head]: {dll}")
+    print(f"   head.data: {dll.head.data}, head.prev: {dll.head.prev}")
+    dll.insert(88, len(dll))  # Insert at tail
+    print(f"   After insert(88, {len(dll)-1}) [tail]: {dll}")
+    print(f"   tail.data: {dll.tail.data}, tail.next: {dll.tail.next}")
+    dll.insert(77, 3)  # Insert at middle
+    print(f"   After insert(77, 3) [middle]: {dll}")
+
     # Test prev/next pointers
-    print("\n4. Testing prev/next pointers:")
+    print("\n5. Testing prev/next pointers:")
     node = dll.search(3)
     print(f"   Node 3's prev: {node.prev.data if node.prev else None}")
     print(f"   Node 3's next: {node.next.data if node.next else None}")
 
     # Test reverse traverse
-    print("\n5. Testing reverse_traverse():")
+    print("\n6. Testing reverse_traverse():")
     print(f"   Forward:  {dll}")
     print(f"   Backward: {dll.reverse_traverse()}")
 
     # Test search
-    print("\n6. Testing search():")
+    print("\n7. Testing search():")
     node = dll.search(3)
     print(f"   search(3): Found node with data = {node.data if node else 'None'}")
-    node = dll.search(99)
-    print(f"   search(99): {node}")
+    node = dll.search(999)
+    print(f"   search(999): {node}")
 
-    # Test delete
-    print("\n7. Testing delete():")
+    # Test delete_first
+    print("\n8. Testing delete_first():")
     print(f"   Before: {dll}")
-    dll.delete(1)  # Delete head
-    print(f"   After delete(1) [head]: {dll}")
+    removed = dll.delete_first()
+    print(f"   Removed: {removed}, After: {dll}")
     print(f"   head.data: {dll.head.data}, head.prev: {dll.head.prev}")
 
-    dll.delete(3)  # Delete middle
-    print(f"   After delete(3) [middle]: {dll}")
-
-    dll.delete(5)  # Delete tail
-    print(f"   After delete(5) [tail]: {dll}")
+    # Test delete_last (O(1) for doubly linked!)
+    print("\n9. Testing delete_last() [O(1) advantage]:")
+    print(f"   Before: {dll}")
+    removed = dll.delete_last()
+    print(f"   Removed: {removed}, After: {dll}")
     print(f"   tail.data: {dll.tail.data}, tail.next: {dll.tail.next}")
 
-    # Test delete_from_tail
-    print("\n8. Testing delete_from_tail():")
-    dll.append(10)
-    dll.append(20)
+    # Test delete_at
+    print("\n10. Testing delete_at():")
     print(f"   Before: {dll}")
-    removed = dll.delete_from_tail()
-    print(f"   Removed: {removed}, After: {dll}")
-    removed = dll.delete_from_tail()
-    print(f"   Removed: {removed}, After: {dll}")
+    removed = dll.delete_at(2)  # Delete middle
+    print(f"   delete_at(2) removed: {removed}, After: {dll}")
+    removed = dll.delete_at(0)  # Delete head
+    print(f"   delete_at(0) removed: {removed}, After: {dll}")
+    print(f"   head.data: {dll.head.data}, tail.data: {dll.tail.data}")
+
+    # Test delete by value
+    print("\n11. Testing delete():")
+    print(f"   Before: {dll}")
+    dll.delete(3)
+    print(f"   After delete(3): {dll}")
 
     # Test edge case: delete until empty
-    print("\n9. Testing delete until empty:")
-    dll.delete(2)
-    dll.delete(4)
+    print("\n12. Testing delete until empty:")
+    while not dll.is_empty():
+        dll.delete_first()
     print(f"   After deleting all: {dll}")
     print(f"   is_empty(): {dll.is_empty()}")
+    print(f"   head: {dll.head}, tail: {dll.tail}")
+    print(f"   delete_first() on empty: {dll.delete_first()}")
+    print(f"   delete_last() on empty: {dll.delete_last()}")
 
 
 def test_comparison():
@@ -470,7 +726,7 @@ def test_comparison():
     print("   | prepend()        | O(1)        | O(1)        | O(1)          |")
     print("   | append()         | O(n)        | O(1)        | O(1)          |")
     print("   | delete(value)    | O(n)        | O(n)        | O(n)          |")
-    print("   | delete_from_tail | O(n)        | O(n)        | O(1)          |")
+    print("   | delete_last      | O(n)        | O(n)        | O(1)          |")
     print("   | search()         | O(n)        | O(n)        | O(n)          |")
     print("   | reverse_traverse | O(n) rebuild| O(n) rebuild| O(n) direct   |")
     print("   +------------------+-------------+-------------+---------------+")
@@ -549,7 +805,7 @@ def test_comparison():
     # For singly linked, must traverse to find second-to-last
     ll1.delete(4)
     ll2.delete(4)
-    removed = dll.delete_from_tail()  # O(1) for doubly linked!
+    removed = dll.delete_last()  # O(1) for doubly linked!
 
     print(f"   After removing last element (removed {removed} from DLL):")
     print(f"   Head Only:      {ll1}  (O(n) - must traverse)")
