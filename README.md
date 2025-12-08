@@ -117,7 +117,66 @@ print(queue.dequeue())  # 1
 print(queue.peek())     # 2
 ```
 
-### 4. Binary Search Tree
+#### Queue Using Two Stacks
+
+Alternative queue implementation using two stacks with amortized O(1) operations.
+
+| Operation | Description | Time (amortized) | Time (worst) |
+|-----------|-------------|------------------|--------------|
+| enqueue(data) | Add to rear | O(1) | O(1) |
+| dequeue() | Remove from front | O(1) | O(n) |
+| peek() | View front | O(1) | O(n) |
+
+```python
+from stack_queue.queue import QueueUsingStacks
+
+queue = QueueUsingStacks()
+queue.enqueue(1)
+queue.enqueue(2)
+print(queue.dequeue())  # 1
+```
+
+### 4. Priority Queue
+
+Min-Priority Queue implementations (lower value = higher priority). Four variants comparing sorted vs unsorted and list vs linked list:
+
+| Implementation | enqueue() | dequeue() | peek() |
+|----------------|-----------|-----------|--------|
+| `PriorityQueueUnsortedList` | O(1) | O(n) | O(n) |
+| `PriorityQueueSortedList` | O(n) | O(1) | O(1) |
+| `PriorityQueueUnsortedLinkedList` | O(1) | O(n) | O(n) |
+| `PriorityQueueSortedLinkedList` | O(n) | O(1) | O(1) |
+| Heap (Binary Heap) | O(log n) | O(log n) | O(1) |
+
+*Note: Heap-based priority queue will be covered when heaps data structure is introduced.*
+
+**Trade-offs:**
+- **Unsorted**: Fast insert, slow removal (good for many inserts, few removals)
+- **Sorted**: Slow insert, fast removal (good for few inserts, many removals)
+
+**Implementation Difference:**
+
+| Operation | Unsorted | Sorted |
+|-----------|----------|--------|
+| enqueue() | Just append to end | Find correct position + shift elements |
+| dequeue() | Scan all elements to find min | Min is always at end, just pop |
+| peek() | Scan all elements to find min | Min is always at end, just look |
+
+The O(n) cost is paid either on insert (sorted) or on removal (unsorted).
+
+**Usage:**
+```python
+from stack_queue.queue import PriorityQueueSortedList
+
+pq = PriorityQueueSortedList()
+pq.enqueue("Low", 3)
+pq.enqueue("High", 1)
+pq.enqueue("Urgent", 0)
+print(pq.dequeue())  # Urgent (priority 0)
+print(pq.dequeue())  # High (priority 1)
+```
+
+### 5. Binary Search Tree
 
 A tree where left < root < right for all nodes.
 
