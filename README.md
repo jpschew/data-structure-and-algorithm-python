@@ -27,7 +27,7 @@ Three variants with different trade-offs:
 |-------|-------------|-------------|
 | `LinkedListHeadOnly` | Singly linked with head only | Minimal memory |
 | `LinkedListHeadTail` | Singly linked with head and tail | O(1) append |
-| `DoublyLinkedList` | Doubly linked with head and tail | O(1) delete from tail, bidirectional traversal |
+| `DoublyLinkedList` | Doubly linked with head and tail | O(1) delete_last, bidirectional traversal |
 
 **Time Complexity Comparison:**
 
@@ -35,8 +35,11 @@ Three variants with different trade-offs:
 |-----------|-----------|-----------|---------------|
 | prepend() | O(1) | O(1) | O(1) |
 | append() | O(n) | O(1) | O(1) |
+| insert(data, index) | O(n) | O(n) | O(n) |
 | delete(value) | O(n) | O(n) | O(n) |
-| delete_from_tail() | O(n) | O(n) | O(1) |
+| delete_first() | O(1) | O(1) | O(1) |
+| delete_last() | O(n) | O(n) | O(1) |
+| delete_at(index) | O(n) | O(n) | O(n) |
 | search() | O(n) | O(n) | O(n) |
 
 **Usage:**
@@ -50,11 +53,22 @@ ll.append(2)
 ll.prepend(0)
 print(ll)  # 0 -> 1 -> 2
 
+# Insert at specific index
+ll.insert(99, 2)       # 0 -> 1 -> 99 -> 2
+
+# Delete operations
+ll.delete_first()      # Returns 0,  list: 1 -> 99 -> 2
+ll.delete_last()       # Returns 2,  list: 1 -> 99
+ll.delete_at(1)        # Returns 99, list: 1
+
 # Doubly linked list
 dll = DoublyLinkedList()
 dll.append(1)
 dll.append(2)
-print(dll.reverse_traverse())  # [2, 1]
+dll.append(3)
+print(dll)                      # 1 <-> 2 <-> 3
+print(dll.reverse_traverse())   # [3, 2, 1]
+dll.delete_last()               # O(1) - returns 3
 ```
 
 ### 2. Stack
