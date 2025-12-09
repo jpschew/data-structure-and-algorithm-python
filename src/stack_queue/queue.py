@@ -240,6 +240,15 @@ def test_queue_using_stacks():
 # =============================================================================
 
 
+class PriorityNode:
+    """A node for the priority queue with priority field."""
+
+    def __init__(self, data, priority):
+        self.data = data
+        self.priority = priority
+        self.next = None
+
+
 class PriorityQueueUnsortedList:
     """
     Priority Queue using UNSORTED Python LIST.
@@ -363,8 +372,7 @@ class PriorityQueueUnsortedLinkedList:
 
     def enqueue(self, data, priority):
         """Add element at head. O(1)"""
-        new_node = Node(data)
-        new_node.priority = priority
+        new_node = PriorityNode(data, priority)
         new_node.next = self.head
         self.head = new_node
         self.size += 1
@@ -442,8 +450,7 @@ class PriorityQueueSortedLinkedList:
 
     def enqueue(self, data, priority):
         """Add element in sorted position. O(n)"""
-        new_node = Node(data)
-        new_node.priority = priority
+        new_node = PriorityNode(data, priority)
 
         # Insert at head if empty or higher priority than head
         if self.head is None or priority < self.head.priority:
