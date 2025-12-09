@@ -1,29 +1,32 @@
+from typing import Any, Optional
+
+
 class Node:
     """A node in a singly linked list."""
 
-    def __init__(self, data):
-        self.data = data
-        self.next = None
+    def __init__(self, data: Any) -> None:
+        self.data: Any = data
+        self.next: Optional[Node] = None
 
 
 class LinkedListHeadOnly:
     """Singly linked list with head reference only."""
 
-    def __init__(self):
-        self.head = None
-        self.size = 0
+    def __init__(self) -> None:
+        self.head: Optional[Node] = None
+        self.size: int = 0
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return self.head is None
 
-    def prepend(self, data):
+    def prepend(self, data: Any) -> None:
         """Add node at the beginning. O(1)"""
         new_node = Node(data)
         new_node.next = self.head
         self.head = new_node
         self.size += 1
 
-    def append(self, data):
+    def append(self, data: Any) -> None:
         """Add node at the end. O(n) - must traverse to find tail"""
         new_node = Node(data)
         if self.head is None:
@@ -36,7 +39,7 @@ class LinkedListHeadOnly:
         current.next = new_node
         self.size += 1
 
-    def insert(self, data, index):
+    def insert(self, data: Any, index: int) -> bool:
         """Insert node at specific index. O(n)"""
         if index < 0 or index > self.size:
             return False
@@ -55,7 +58,7 @@ class LinkedListHeadOnly:
         self.size += 1
         return True
 
-    def delete(self, data):
+    def delete(self, data: Any) -> bool:
         """Delete first node with matching data. O(n)"""
         if self.head is None:
             return False
@@ -72,7 +75,7 @@ class LinkedListHeadOnly:
             current = current.next
         return False
 
-    def delete_first(self):
+    def delete_first(self) -> Optional[Any]:
         """Delete node from the beginning. O(1)"""
         if self.head is None:
             return None
@@ -81,7 +84,7 @@ class LinkedListHeadOnly:
         self.size -= 1
         return data
 
-    def delete_last(self):
+    def delete_last(self) -> Optional[Any]:
         """Delete node from the end. O(n) - must traverse to find second-to-last"""
         if self.head is None:
             return None
@@ -98,7 +101,7 @@ class LinkedListHeadOnly:
         self.size -= 1
         return data
 
-    def delete_at(self, index):
+    def delete_at(self, index: int) -> Optional[Any]:
         """Delete node at specific index. O(n)"""
         if index < 0 or index >= self.size:
             return None
@@ -114,7 +117,7 @@ class LinkedListHeadOnly:
         self.size -= 1
         return data
 
-    def search(self, data):
+    def search(self, data: Any) -> Optional[Node]:
         """Search for a node with matching data. O(n)"""
         current = self.head
         while current:
@@ -123,10 +126,10 @@ class LinkedListHeadOnly:
             current = current.next
         return None
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
-    def __str__(self):
+    def __str__(self) -> str:
         values = []
         current = self.head
         while current:
@@ -138,15 +141,15 @@ class LinkedListHeadOnly:
 class LinkedListHeadTail:
     """Singly linked list with head and tail references."""
 
-    def __init__(self):
-        self.head = None
-        self.tail = None
-        self.size = 0
+    def __init__(self) -> None:
+        self.head: Optional[Node] = None
+        self.tail: Optional[Node] = None
+        self.size: int = 0
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return self.head is None
 
-    def prepend(self, data):
+    def prepend(self, data: Any) -> None:
         """Add node at the beginning. O(1)"""
         new_node = Node(data)
         if self.head is None:
@@ -157,7 +160,7 @@ class LinkedListHeadTail:
             self.head = new_node
         self.size += 1
 
-    def append(self, data):
+    def append(self, data: Any) -> None:
         """Add node at the end. O(1) - tail reference makes this efficient"""
         new_node = Node(data)
         if self.head is None:
@@ -168,7 +171,7 @@ class LinkedListHeadTail:
             self.tail = new_node
         self.size += 1
 
-    def insert(self, data, index):
+    def insert(self, data: Any, index: int) -> bool:
         """Insert node at specific index. O(n)"""
         if index < 0 or index > self.size:
             return False
@@ -187,7 +190,7 @@ class LinkedListHeadTail:
         self.size += 1
         return True
 
-    def delete(self, data):
+    def delete(self, data: Any) -> bool:
         """Delete first node with matching data. O(n)"""
         if self.head is None:
             return False
@@ -212,7 +215,7 @@ class LinkedListHeadTail:
             current = current.next
         return False
 
-    def delete_first(self):
+    def delete_first(self) -> Optional[Any]:
         """Delete node from the beginning. O(1)"""
         if self.head is None:
             return None
@@ -225,7 +228,7 @@ class LinkedListHeadTail:
         self.size -= 1
         return data
 
-    def delete_last(self):
+    def delete_last(self) -> Optional[Any]:
         """Delete node from the end. O(n) - must traverse to find second-to-last"""
         if self.head is None:
             return None
@@ -242,7 +245,7 @@ class LinkedListHeadTail:
         self.size -= 1
         return data
 
-    def delete_at(self, index):
+    def delete_at(self, index: int) -> Optional[Any]:
         """Delete node at specific index. O(n)"""
         if index < 0 or index >= self.size:
             return None
@@ -258,7 +261,7 @@ class LinkedListHeadTail:
         self.size -= 1
         return data
 
-    def search(self, data):
+    def search(self, data: Any) -> Optional[Node]:
         """Search for a node with matching data. O(n)"""
         current = self.head
         while current:
@@ -267,10 +270,10 @@ class LinkedListHeadTail:
             current = current.next
         return None
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
-    def __str__(self):
+    def __str__(self) -> str:
         values = []
         current = self.head
         while current:
@@ -282,24 +285,24 @@ class LinkedListHeadTail:
 class DoublyNode:
     """A node in a doubly linked list."""
 
-    def __init__(self, data):
-        self.data = data
-        self.prev = None
-        self.next = None
+    def __init__(self, data: Any) -> None:
+        self.data: Any = data
+        self.prev: Optional[DoublyNode] = None
+        self.next: Optional[DoublyNode] = None
 
 
 class DoublyLinkedList:
     """Doubly linked list with head and tail references."""
 
-    def __init__(self):
-        self.head = None
-        self.tail = None
-        self.size = 0
+    def __init__(self) -> None:
+        self.head: Optional[DoublyNode] = None
+        self.tail: Optional[DoublyNode] = None
+        self.size: int = 0
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return self.head is None
 
-    def prepend(self, data):
+    def prepend(self, data: Any) -> None:
         """Add node at the beginning. O(1)"""
         new_node = DoublyNode(data)
         if self.head is None:
@@ -311,7 +314,7 @@ class DoublyLinkedList:
             self.head = new_node
         self.size += 1
 
-    def append(self, data):
+    def append(self, data: Any) -> None:
         """Add node at the end. O(1)"""
         new_node = DoublyNode(data)
         if self.head is None:
@@ -323,7 +326,7 @@ class DoublyLinkedList:
             self.tail = new_node
         self.size += 1
 
-    def insert(self, data, index):
+    def insert(self, data: Any, index: int) -> bool:
         """Insert node at specific index. O(n)"""
         if index < 0 or index > self.size:
             return False
@@ -344,7 +347,7 @@ class DoublyLinkedList:
         self.size += 1
         return True
 
-    def delete(self, data):
+    def delete(self, data: Any) -> bool:
         """Delete first node with matching data. O(n)"""
         current = self.head
         while current:
@@ -366,7 +369,7 @@ class DoublyLinkedList:
             current = current.next
         return False
 
-    def delete_first(self):
+    def delete_first(self) -> Optional[Any]:
         """Delete node from the beginning. O(1)"""
         if self.head is None:
             return None
@@ -380,7 +383,7 @@ class DoublyLinkedList:
         self.size -= 1
         return data
 
-    def delete_last(self):
+    def delete_last(self) -> Optional[Any]:
         """Delete node from the end. O(1) - advantage of doubly linked"""
         if self.tail is None:
             return None
@@ -394,7 +397,7 @@ class DoublyLinkedList:
         self.size -= 1
         return data
 
-    def delete_at(self, index):
+    def delete_at(self, index: int) -> Optional[Any]:
         """Delete node at specific index. O(n)"""
         if index < 0 or index >= self.size:
             return None
@@ -411,7 +414,7 @@ class DoublyLinkedList:
         self.size -= 1
         return data
 
-    def search(self, data):
+    def search(self, data: Any) -> Optional[DoublyNode]:
         """Search for a node with matching data. O(n)"""
         current = self.head
         while current:
@@ -420,19 +423,19 @@ class DoublyLinkedList:
             current = current.next
         return None
 
-    def reverse_traverse(self):
+    def reverse_traverse(self) -> list[Any]:
         """Traverse list from tail to head. O(n)"""
-        values = []
+        values: list[Any] = []
         current = self.tail
         while current:
             values.append(current.data)
             current = current.prev
         return values
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
-    def __str__(self):
+    def __str__(self) -> str:
         values = []
         current = self.head
         while current:
