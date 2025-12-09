@@ -396,6 +396,36 @@ inorder:  visits ALL nodes (both branches, use recursive)
 
 Why? Recursion uses the call stack to "remember" where to return after visiting a branch. For single-direction traversal, there's nothing to remember, so iterative is more efficient.
 
+**nodes_at_distance() - Educational Purpose:**
+
+The `nodes_at_distance(k)` method returns all nodes at distance k from the root. This method has **limited practical use** in BST but is included for educational purposes to understand tree depth.
+
+```
+        50          <- distance 0
+       /  \
+      30   70       <- distance 1
+     / \   / \
+    20 40 60 80     <- distance 2
+
+nodes_at_distance(0)  → [50]
+nodes_at_distance(1)  → [30, 70]
+nodes_at_distance(2)  → [20, 40, 60, 80]
+```
+
+| Use Case | Description |
+|----------|-------------|
+| Get nodes at specific depth | Find all nodes exactly k levels from root |
+| Find cousins | Nodes at same level but different parent |
+| Tree visualization | Print specific level of tree |
+
+| Need | Better Method |
+|------|---------------|
+| All levels | `level_order()` - O(n) |
+| Single level only | `nodes_at_distance(k)` - O(n) |
+| Nodes grouped by level | Modify `level_order()` to return nested list |
+
+*Note: For most practical use cases, `level_order()` is preferred as it processes all levels in a single O(n) traversal.*
+
 **Usage:**
 ```python
 from trees.binary_tree import BinarySearchTree
