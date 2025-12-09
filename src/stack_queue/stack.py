@@ -1,30 +1,33 @@
+from typing import Any, Optional
+
+
 class Node:
     """A node for the stack."""
 
-    def __init__(self, data):
-        self.data = data
-        self.next = None
+    def __init__(self, data: Any) -> None:
+        self.data: Any = data
+        self.next: Optional[Node] = None
 
 
 class Stack:
     """Stack implementation using linked list (LIFO - Last In First Out)."""
 
-    def __init__(self):
-        self.top = None
-        self.size = 0
+    def __init__(self) -> None:
+        self.top: Optional[Node] = None
+        self.size: int = 0
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Check if stack is empty. O(1)"""
         return self.top is None
 
-    def push(self, data):
+    def push(self, data: Any) -> None:
         """Add element to the top of stack. O(1)"""
         new_node = Node(data)
         new_node.next = self.top
         self.top = new_node
         self.size += 1
 
-    def pop(self):
+    def pop(self) -> Optional[Any]:
         """Remove and return element from top of stack. O(1)"""
         if self.top is None:
             return None
@@ -33,16 +36,16 @@ class Stack:
         self.size -= 1
         return data
 
-    def peek(self):
+    def peek(self) -> Optional[Any]:
         """Return top element without removing it. O(1)"""
         if self.top is None:
             return None
         return self.top.data
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
-    def __str__(self):
+    def __str__(self) -> str:
         values = []
         current = self.top
         while current:
