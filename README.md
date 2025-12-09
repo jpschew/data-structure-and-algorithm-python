@@ -162,7 +162,85 @@ Min-Priority Queue implementations (lower value = higher priority). Four variant
 | dequeue() | Scan all elements to find min | Min is always at end, just pop |
 | peek() | Scan all elements to find min | Min is always at end, just look |
 
+*Note: `peek()` and `dequeue()` have the same complexity because `peek()` looks at the highest priority element, not just the front of the queue. Both must find the minimum first.*
+
 The O(n) cost is paid either on insert (sorted) or on removal (unsorted).
+
+**How They Work:**
+
+*Note: Priority queue removes by priority, not FIFO like regular queue.*
+
+**List Implementation:**
+```
+UNSORTED LIST: Insert anywhere, search when removing
+enqueue("Low", 3)     → [(3,Low)]
+enqueue("High", 1)    → [(3,Low), (1,High)]
+enqueue("Urgent", 0)  → [(3,Low), (1,High), (0,Urgent)]
+dequeue()             → scan all, find min(0) → returns "Urgent"
+
+SORTED LIST: Store descending (min at END), pop from end
+enqueue("Low", 3)     → [(3,Low)]
+enqueue("High", 1)    → [(3,Low), (1,High)]         ← sorted position
+enqueue("Urgent", 0)  → [(3,Low), (1,High), (0,Urgent)]  ← min at end
+dequeue()             → pop() from end → returns "Urgent" (O(1))
+```
+
+**Linked List Implementation:**
+```
+UNSORTED LINKED LIST: Insert at head, search when removing
+enqueue("Low", 3)     → (3,Low)
+enqueue("High", 1)    → (1,High) → (3,Low)
+enqueue("Urgent", 0)  → (0,Urgent) → (1,High) → (3,Low)
+dequeue()             → scan all, find min(0) → returns "Urgent"
+
+SORTED LINKED LIST: Store ascending (min at HEAD), remove from head
+enqueue("Low", 3)     → (3,Low)
+enqueue("High", 1)    → (1,High) → (3,Low)          ← sorted position
+enqueue("Urgent", 0)  → (0,Urgent) → (1,High) → (3,Low)  ← min at head
+dequeue()             → remove head → returns "Urgent" (O(1))
+```
+
+**Where do unsorted implementations insert?**
+
+| Data Structure | Insert At | Why |
+|----------------|-----------|-----|
+| List | End (append) | `list.append()` is O(1) |
+| Linked List | Head (prepend) | Head insertion is O(1), tail is O(n) |
+
+**Why different remove positions?**
+
+| Data Structure | Sorted Order | Remove From | Why |
+|----------------|--------------|-------------|-----|
+| List | Descending (min at end) | End | `pop()` is O(1), `pop(0)` is O(n) |
+| Linked List | Ascending (min at head) | Head | Head removal is O(1), tail is O(n) |
+
+**Why TAIL reference doesn't help?**
+
+| Implementation | Bottleneck | TAIL helps? |
+|----------------|------------|-------------|
+| Unsorted | O(n) scan to find min | No - still need to scan all |
+| Sorted | O(n) traverse to find position | No - still need to traverse |
+
+TAIL helps for O(1) append, but priority queue bottleneck is **finding**, not inserting.
+
+**Why Doubly Linked List (HEAD + TAIL) doesn't help?**
+
+```
+Singly:  To remove node B, need to find A first (traverse from head)
+         (A) → (B) → (C)
+
+Doubly:  Can remove B directly: B.prev.next = B.next
+         (A) ⇄ (B) ⇄ (C)
+```
+
+Doubly linked list makes **removal O(1) once found**, but:
+
+| Implementation | With Doubly LL | Improvement? |
+|----------------|----------------|--------------|
+| Unsorted | O(n) scan + O(1) remove | No - scan is still O(n) |
+| Sorted | O(n) find position + O(1) insert | No - traverse is still O(n) |
+
+The bottleneck is **finding** the element, not removing it. This is why **Heaps** are preferred - O(log n) for both operations.
 
 **Usage:**
 ```python
@@ -176,7 +254,50 @@ print(pq.dequeue())  # Urgent (priority 0)
 print(pq.dequeue())  # High (priority 1)
 ```
 
-### 5. Binary Search Tree
+### 5. Trees
+
+#### What is a Binary Tree?
+
+A binary tree is a hierarchical data structure where each node has **at most 2 children** (left and right).
+
+```
+       Root
+       /  \
+    Left   Right
+    /  \
+ Child  Child
+```
+
+**Key terms:**
+- **Root**: Top node (no parent)
+- **Leaf**: Node with no children
+- **Height**: Longest path from root to leaf
+- **Depth**: Distance from root to a node
+
+#### Types of Binary Trees
+
+| Type | Definition | Key Property |
+|------|------------|--------------|
+| Full | Every node has 0 or 2 children | No single-child nodes |
+| Complete | All levels filled, last level fills left to right | Used for heaps |
+| Perfect | All internal nodes have 2 children, leaves at same level | Full + Complete |
+| Balanced | Height difference between subtrees ≤ 1 | O(log n) operations |
+| Degenerate | Every node has only 1 child | O(n) operations (like linked list) |
+
+```
+Full:           Complete:       Perfect:        Degenerate:
+    1               1               1               1
+   / \             / \             / \               \
+  2   3           2   3           2   3               2
+ / \             / \ /           / \ / \               \
+4   5           4  5 6          4  5 6  7               3
+```
+
+**Relationships:**
+- Perfect = Full + Complete + all leaves at same level
+- Balanced trees (AVL, Red-Black) guarantee O(log n) operations
+
+#### Binary Search Tree
 
 A tree where left < root < right for all nodes.
 
@@ -192,10 +313,88 @@ A tree where left < root < right for all nodes.
 
 | Method | Order | Use Case |
 |--------|-------|----------|
-| inorder() | Left, Root, Right | Sorted output |
+| inorder() | Left, Root, Right | Sorted output (ascending) |
+| reverse_inorder() | Right, Root, Left | Sorted output (descending) |
 | preorder() | Root, Left, Right | Copy tree |
 | postorder() | Left, Right, Root | Delete tree |
 | level_order() | BFS by level | Level-by-level processing |
+
+**Why these use cases?**
+
+```
+Example BST:
+    4
+   / \
+  2   6
+ / \ / \
+1  3 5  7
+```
+
+| Traversal | Output | Reason |
+|-----------|--------|--------|
+| Inorder | 1, 2, 3, 4, 5, 6, 7 | Left first gives ascending order |
+| Reverse Inorder | 7, 6, 5, 4, 3, 2, 1 | Right first gives descending order |
+| Preorder | 4, 2, 1, 3, 6, 5, 7 | Root first, so parent created before children |
+| Postorder | 1, 3, 2, 5, 7, 6, 4 | Children first, so they are deleted before parent |
+| Level Order | 4, 2, 6, 1, 3, 5, 7 | Processes by depth, useful for shortest path |
+
+**Inorder vs Reverse Inorder:**
+
+Inorder is usually enough because for descending order, you can simply reverse the list:
+```python
+ascending = bst.inorder()        # [1, 2, 3, 4, 5]
+descending = bst.inorder()[::-1] # [5, 4, 3, 2, 1]
+```
+
+| Scenario | Use |
+|----------|-----|
+| Need sorted ascending | inorder() |
+| Need sorted descending | inorder()[::-1] (simpler) |
+| Need top K largest (early termination) | reverse_inorder |
+| Memory constrained (can't store list) | reverse_inorder |
+
+**Why BFS for Level Order (not height + nodes_at_distance)?**
+
+Level order can be implemented two ways:
+```python
+# BFS approach (used) - O(n) time
+queue = [root]
+while queue:
+    node = queue.pop(0)
+    visit(node)
+    queue.append(node.left, node.right)
+
+# Height approach - O(n²) time
+for i in range(height + 1):
+    nodes_at_distance(i)  # traverses from root each time
+```
+
+| Approach | Time | Why |
+|----------|------|-----|
+| BFS (queue) | O(n) | Each node visited once |
+| height + nodes_at_distance | O(n²) | Traverses from root for EACH level |
+
+BFS is more efficient because it visits each node exactly once, while the height approach re-traverses from root for every level.
+
+**Recursion vs Iteration in Trees:**
+
+| Path Type | Use | Space | Example |
+|-----------|-----|-------|---------|
+| Single direction (left OR right) | Iterative | O(1) | find_min, find_max |
+| Both directions (left AND right) | Recursive | O(h) | traversals, height |
+
+```
+        50
+       /  \
+      30   70
+     /
+    20
+
+find_min: 50 → 30 → 20 (single path, use iterative)
+inorder:  visits ALL nodes (both branches, use recursive)
+```
+
+Why? Recursion uses the call stack to "remember" where to return after visiting a branch. For single-direction traversal, there's nothing to remember, so iterative is more efficient.
 
 **Usage:**
 ```python
