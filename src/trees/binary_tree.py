@@ -99,14 +99,18 @@ class BinarySearchTree:
             return None
         return self._find_min(self.root).data
 
+    def _find_max(self, node):
+        """Find the maximum value node in a subtree."""
+        current = node
+        while current.right:
+            current = current.right
+        return current
+
     def find_max(self):
         """Find maximum value in BST. O(log n) average, O(n) worst"""
         if self.root is None:
             return None
-        current = self.root
-        while current.right:
-            current = current.right
-        return current.data
+        return self._find_max(self.root).data
 
     # Tree Traversals
     def inorder(self):
@@ -120,6 +124,18 @@ class BinarySearchTree:
             self._inorder_recursive(node.left, result)
             result.append(node.data)
             self._inorder_recursive(node.right, result)
+
+    def reverse_inorder(self):
+        """Reverse Inorder traversal (Right, Root, Left) - returns descending order. O(n)"""
+        result = []
+        self._reverse_inorder_recursive(self.root, result)
+        return result
+
+    def _reverse_inorder_recursive(self, node, result):
+        if node:
+            self._reverse_inorder_recursive(node.right, result)
+            result.append(node.data)
+            self._reverse_inorder_recursive(node.left, result)
 
     def preorder(self):
         """Preorder traversal (Root, Left, Right). O(n)"""
@@ -159,6 +175,21 @@ class BinarySearchTree:
             if node.right:
                 queue.append(node.right)
         return result
+
+    def nodes_at_distance(self, distance):
+        """Find all nodes at a given distance from root. O(n)"""
+        result = []
+        self._nodes_at_distance_recursive(self.root, distance, result)
+        return result
+
+    def _nodes_at_distance_recursive(self, node, distance, result):
+        if node is None:
+            return
+        if distance == 0:
+            result.append(node.data)
+            return
+        self._nodes_at_distance_recursive(node.left, distance - 1, result)
+        self._nodes_at_distance_recursive(node.right, distance - 1, result)
 
     def height(self):
         """Get height of the tree. O(n)"""
@@ -207,25 +238,38 @@ def test_binary_search_tree():
 
     # Test traversals
     print("\n3. Testing traversals:")
-    print(f"   Inorder (sorted):  {bst.inorder()}")
-    print(f"   Preorder:          {bst.preorder()}")
-    print(f"   Postorder:         {bst.postorder()}")
-    print(f"   Level order (BFS): {bst.level_order()}")
+    print(f"   Inorder (ascending):   {bst.inorder()}")
+    print(f"   Reverse Inorder (desc): {bst.reverse_inorder()}")
+    print(f"   Preorder:               {bst.preorder()}")
+    print(f"   Postorder:              {bst.postorder()}")
+    print(f"   Level order (BFS):      {bst.level_order()}")
+
+    # Test nodes at distance
+    print("\n4. Testing nodes_at_distance():")
+    #        50          <- distance 0
+    #       /  \
+    #      30   70       <- distance 1
+    #     / \   / \
+    #    20 40 60 80     <- distance 2
+    print(f"   Distance 0: {bst.nodes_at_distance(0)}")
+    print(f"   Distance 1: {bst.nodes_at_distance(1)}")
+    print(f"   Distance 2: {bst.nodes_at_distance(2)}")
+    print(f"   Distance 3: {bst.nodes_at_distance(3)}")
 
     # Test search
-    print("\n4. Testing search():")
+    print("\n5. Testing search():")
     node = bst.search(40)
     print(f"   search(40): Found node with data = {node.data if node else 'None'}")
     node = bst.search(99)
     print(f"   search(99): {node}")
 
     # Test min/max
-    print("\n5. Testing find_min() and find_max():")
+    print("\n6. Testing find_min() and find_max():")
     print(f"   find_min(): {bst.find_min()}")
     print(f"   find_max(): {bst.find_max()}")
 
     # Test delete
-    print("\n6. Testing delete():")
+    print("\n7. Testing delete():")
     print(f"   Before: {bst.inorder()}")
 
     bst.delete(20)  # Delete leaf
