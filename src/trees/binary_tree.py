@@ -1,24 +1,27 @@
+from typing import Any, Optional
+
+
 class TreeNode:
     """A node in a binary tree."""
 
-    def __init__(self, data):
-        self.data = data
-        self.left = None
-        self.right = None
+    def __init__(self, data: Any) -> None:
+        self.data: Any = data
+        self.left: Optional[TreeNode] = None
+        self.right: Optional[TreeNode] = None
 
 
 class BinarySearchTree:
     """Binary Search Tree implementation (left < root < right)."""
 
-    def __init__(self):
-        self.root = None
-        self.size = 0
+    def __init__(self) -> None:
+        self.root: Optional[TreeNode] = None
+        self.size: int = 0
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Check if tree is empty. O(1)"""
         return self.root is None
 
-    def insert(self, data):
+    def insert(self, data: Any) -> None:
         """Insert a value into the BST. O(log n) average, O(n) worst"""
         if self.root is None:
             self.root = TreeNode(data)
@@ -26,7 +29,7 @@ class BinarySearchTree:
             self._insert_recursive(self.root, data)
         self.size += 1
 
-    def _insert_recursive(self, node, data):
+    def _insert_recursive(self, node: TreeNode, data: Any) -> None:
         if data < node.data:
             if node.left is None:
                 node.left = TreeNode(data)
@@ -38,11 +41,11 @@ class BinarySearchTree:
             else:
                 self._insert_recursive(node.right, data)
 
-    def search(self, data):
+    def search(self, data: Any) -> Optional[TreeNode]:
         """Search for a value in the BST. O(log n) average, O(n) worst"""
         return self._search_recursive(self.root, data)
 
-    def _search_recursive(self, node, data):
+    def _search_recursive(self, node: Optional[TreeNode], data: Any) -> Optional[TreeNode]:
         if node is None:
             return None
         if data == node.data:
@@ -52,14 +55,16 @@ class BinarySearchTree:
         else:
             return self._search_recursive(node.right, data)
 
-    def delete(self, data):
+    def delete(self, data: Any) -> bool:
         """Delete a value from the BST. O(log n) average, O(n) worst"""
         self.root, deleted = self._delete_recursive(self.root, data)
         if deleted:
             self.size -= 1
         return deleted
 
-    def _delete_recursive(self, node, data):
+    def _delete_recursive(
+        self, node: Optional[TreeNode], data: Any
+    ) -> tuple[Optional[TreeNode], bool]:
         if node is None:
             return node, False
 
@@ -86,87 +91,87 @@ class BinarySearchTree:
 
         return node, deleted
 
-    def _find_min(self, node):
+    def _find_min(self, node: TreeNode) -> TreeNode:
         """Find the minimum value node in a subtree."""
         current = node
         while current.left:
             current = current.left
         return current
 
-    def find_min(self):
+    def find_min(self) -> Optional[Any]:
         """Find minimum value in BST. O(log n) average, O(n) worst"""
         if self.root is None:
             return None
         return self._find_min(self.root).data
 
-    def _find_max(self, node):
+    def _find_max(self, node: TreeNode) -> TreeNode:
         """Find the maximum value node in a subtree."""
         current = node
         while current.right:
             current = current.right
         return current
 
-    def find_max(self):
+    def find_max(self) -> Optional[Any]:
         """Find maximum value in BST. O(log n) average, O(n) worst"""
         if self.root is None:
             return None
         return self._find_max(self.root).data
 
     # Tree Traversals
-    def inorder(self):
+    def inorder(self) -> list[Any]:
         """Inorder traversal (Left, Root, Right) - returns sorted order. O(n)"""
-        result = []
+        result: list[Any] = []
         self._inorder_recursive(self.root, result)
         return result
 
-    def _inorder_recursive(self, node, result):
+    def _inorder_recursive(self, node: Optional[TreeNode], result: list[Any]) -> None:
         if node:
             self._inorder_recursive(node.left, result)
             result.append(node.data)
             self._inorder_recursive(node.right, result)
 
-    def reverse_inorder(self):
+    def reverse_inorder(self) -> list[Any]:
         """Reverse Inorder traversal (Right, Root, Left) - returns descending order. O(n)"""
-        result = []
+        result: list[Any] = []
         self._reverse_inorder_recursive(self.root, result)
         return result
 
-    def _reverse_inorder_recursive(self, node, result):
+    def _reverse_inorder_recursive(self, node: Optional[TreeNode], result: list[Any]) -> None:
         if node:
             self._reverse_inorder_recursive(node.right, result)
             result.append(node.data)
             self._reverse_inorder_recursive(node.left, result)
 
-    def preorder(self):
+    def preorder(self) -> list[Any]:
         """Preorder traversal (Root, Left, Right). O(n)"""
-        result = []
+        result: list[Any] = []
         self._preorder_recursive(self.root, result)
         return result
 
-    def _preorder_recursive(self, node, result):
+    def _preorder_recursive(self, node: Optional[TreeNode], result: list[Any]) -> None:
         if node:
             result.append(node.data)
             self._preorder_recursive(node.left, result)
             self._preorder_recursive(node.right, result)
 
-    def postorder(self):
+    def postorder(self) -> list[Any]:
         """Postorder traversal (Left, Right, Root). O(n)"""
-        result = []
+        result: list[Any] = []
         self._postorder_recursive(self.root, result)
         return result
 
-    def _postorder_recursive(self, node, result):
+    def _postorder_recursive(self, node: Optional[TreeNode], result: list[Any]) -> None:
         if node:
             self._postorder_recursive(node.left, result)
             self._postorder_recursive(node.right, result)
             result.append(node.data)
 
-    def level_order(self):
+    def level_order(self) -> list[Any]:
         """Level order traversal (BFS). O(n)"""
         if self.root is None:
             return []
-        result = []
-        queue = [self.root]
+        result: list[Any] = []
+        queue: list[TreeNode] = [self.root]
         while queue:
             node = queue.pop(0)
             result.append(node.data)
@@ -176,13 +181,15 @@ class BinarySearchTree:
                 queue.append(node.right)
         return result
 
-    def nodes_at_distance(self, distance):
+    def nodes_at_distance(self, distance: int) -> list[Any]:
         """Find all nodes at a given distance from root. O(n)"""
-        result = []
+        result: list[Any] = []
         self._nodes_at_distance_recursive(self.root, distance, result)
         return result
 
-    def _nodes_at_distance_recursive(self, node, distance, result):
+    def _nodes_at_distance_recursive(
+        self, node: Optional[TreeNode], distance: int, result: list[Any]
+    ) -> None:
         if node is None:
             return
         if distance == 0:
@@ -191,21 +198,21 @@ class BinarySearchTree:
         self._nodes_at_distance_recursive(node.left, distance - 1, result)
         self._nodes_at_distance_recursive(node.right, distance - 1, result)
 
-    def height(self):
+    def height(self) -> int:
         """Get height of the tree. O(n)"""
         return self._height_recursive(self.root)
 
-    def _height_recursive(self, node):
+    def _height_recursive(self, node: Optional[TreeNode]) -> int:
         if node is None:
             return -1
         left_height = self._height_recursive(node.left)
         right_height = self._height_recursive(node.right)
         return max(left_height, right_height) + 1
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.root is None:
             return "Empty"
         return f"BST(size={self.size}, root={self.root.data}, inorder={self.inorder()})"
