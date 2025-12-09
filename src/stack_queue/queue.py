@@ -1,24 +1,27 @@
+from typing import Any, Optional
+
+
 class Node:
     """A node for the queue."""
 
-    def __init__(self, data):
-        self.data = data
-        self.next = None
+    def __init__(self, data: Any) -> None:
+        self.data: Any = data
+        self.next: Optional[Node] = None
 
 
 class Queue:
     """Queue implementation using linked list (FIFO - First In First Out)."""
 
-    def __init__(self):
-        self.front = None
-        self.rear = None
-        self.size = 0
+    def __init__(self) -> None:
+        self.front: Optional[Node] = None
+        self.rear: Optional[Node] = None
+        self.size: int = 0
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Check if queue is empty. O(1)"""
         return self.front is None
 
-    def enqueue(self, data):
+    def enqueue(self, data: Any) -> None:
         """Add element to the rear of queue. O(1)"""
         new_node = Node(data)
         if self.rear is None:
@@ -29,7 +32,7 @@ class Queue:
             self.rear = new_node
         self.size += 1
 
-    def dequeue(self):
+    def dequeue(self) -> Optional[Any]:
         """Remove and return element from front of queue. O(1)"""
         if self.front is None:
             return None
@@ -40,16 +43,16 @@ class Queue:
         self.size -= 1
         return data
 
-    def peek(self):
+    def peek(self) -> Optional[Any]:
         """Return front element without removing it. O(1)"""
         if self.front is None:
             return None
         return self.front.data
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
-    def __str__(self):
+    def __str__(self) -> str:
         values = []
         current = self.front
         while current:
@@ -80,25 +83,25 @@ class QueueUsingStacks:
     - peek(): Amortized O(1), worst case O(n)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         from .stack import Stack
-        self.stack_in = Stack()   # For pushing new elements
-        self.stack_out = Stack()  # For popping elements
+        self.stack_in: Stack = Stack()   # For pushing new elements
+        self.stack_out: Stack = Stack()  # For popping elements
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Check if queue is empty. O(1)"""
         return self.stack_in.is_empty() and self.stack_out.is_empty()
 
-    def enqueue(self, data):
+    def enqueue(self, data: Any) -> None:
         """Add element to the rear of queue. O(1)"""
         self.stack_in.push(data)
 
-    def _transfer(self):
+    def _transfer(self) -> None:
         """Transfer elements from stack_in to stack_out. O(n)"""
         while not self.stack_in.is_empty():
             self.stack_out.push(self.stack_in.pop())
 
-    def dequeue(self):
+    def dequeue(self) -> Optional[Any]:
         """Remove and return element from front of queue. Amortized O(1)"""
         if self.is_empty():
             return None
@@ -106,7 +109,7 @@ class QueueUsingStacks:
             self._transfer()
         return self.stack_out.pop()
 
-    def peek(self):
+    def peek(self) -> Optional[Any]:
         """Return front element without removing it. Amortized O(1)"""
         if self.is_empty():
             return None
@@ -114,21 +117,21 @@ class QueueUsingStacks:
             self._transfer()
         return self.stack_out.peek()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.stack_in) + len(self.stack_out)
 
-    def __str__(self):
+    def __str__(self) -> str:
         # Combine stack_out (reversed) + stack_in for display
         if self.is_empty():
             return "Empty"
         # Collect elements from stack_out (front of queue)
-        out_elements = []
+        out_elements: list[Any] = []
         current = self.stack_out.top
         while current:
             out_elements.append(current.data)
             current = current.next
         # Collect elements from stack_in (back of queue, reversed)
-        in_elements = []
+        in_elements: list[Any] = []
         current = self.stack_in.top
         while current:
             in_elements.append(current.data)
@@ -243,10 +246,10 @@ def test_queue_using_stacks():
 class PriorityNode:
     """A node for the priority queue with priority field."""
 
-    def __init__(self, data, priority):
-        self.data = data
-        self.priority = priority
-        self.next = None
+    def __init__(self, data: Any, priority: int) -> None:
+        self.data: Any = data
+        self.priority: int = priority
+        self.next: Optional[PriorityNode] = None
 
 
 class PriorityQueueUnsortedList:
@@ -259,17 +262,17 @@ class PriorityQueueUnsortedList:
     - peek(): O(n) - scan to find min
     """
 
-    def __init__(self):
-        self.items = []  # stores (priority, data) tuples
+    def __init__(self) -> None:
+        self.items: list[tuple[int, Any]] = []  # stores (priority, data) tuples
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return len(self.items) == 0
 
-    def enqueue(self, data, priority):
+    def enqueue(self, data: Any, priority: int) -> None:
         """Add element with priority. O(1)"""
         self.items.append((priority, data))
 
-    def _find_min_index(self):
+    def _find_min_index(self) -> Optional[int]:
         """Find index of minimum priority. O(n)"""
         if self.is_empty():
             return None
@@ -279,7 +282,7 @@ class PriorityQueueUnsortedList:
                 min_index = i
         return min_index
 
-    def dequeue(self):
+    def dequeue(self) -> Optional[Any]:
         """Remove and return highest priority element. O(n)"""
         if self.is_empty():
             return None
@@ -287,17 +290,17 @@ class PriorityQueueUnsortedList:
         priority, data = self.items.pop(min_index)  # O(n) shift
         return data
 
-    def peek(self):
+    def peek(self) -> Optional[Any]:
         """Return highest priority element. O(n)"""
         if self.is_empty():
             return None
         min_index = self._find_min_index()
         return self.items[min_index][1]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.items)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.is_empty():
             return "Empty"
         return ", ".join(f"({p}, {d})" for p, d in self.items)
@@ -314,13 +317,13 @@ class PriorityQueueSortedList:
     - peek(): O(1) - look at end
     """
 
-    def __init__(self):
-        self.items = []  # stores (priority, data), sorted descending
+    def __init__(self) -> None:
+        self.items: list[tuple[int, Any]] = []  # stores (priority, data), sorted descending
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return len(self.items) == 0
 
-    def enqueue(self, data, priority):
+    def enqueue(self, data: Any, priority: int) -> None:
         """Add element in sorted position. O(n)"""
         # Find position (keep descending order so min is at end)
         pos = 0
@@ -331,23 +334,23 @@ class PriorityQueueSortedList:
                 break
         self.items.insert(pos, (priority, data))  # O(n) shift
 
-    def dequeue(self):
+    def dequeue(self) -> Optional[Any]:
         """Remove and return highest priority element. O(1)"""
         if self.is_empty():
             return None
         priority, data = self.items.pop()  # O(1) from end
         return data
 
-    def peek(self):
+    def peek(self) -> Optional[Any]:
         """Return highest priority element. O(1)"""
         if self.is_empty():
             return None
         return self.items[-1][1]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.items)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.is_empty():
             return "Empty"
         return ", ".join(f"({p}, {d})" for p, d in self.items)
@@ -363,30 +366,30 @@ class PriorityQueueUnsortedLinkedList:
     - peek(): O(n) - scan to find min
     """
 
-    def __init__(self):
-        self.head = None
-        self.size = 0
+    def __init__(self) -> None:
+        self.head: Optional[PriorityNode] = None
+        self.size: int = 0
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return self.head is None
 
-    def enqueue(self, data, priority):
+    def enqueue(self, data: Any, priority: int) -> None:
         """Add element at head. O(1)"""
         new_node = PriorityNode(data, priority)
         new_node.next = self.head
         self.head = new_node
         self.size += 1
 
-    def dequeue(self):
+    def dequeue(self) -> Optional[Any]:
         """Remove and return highest priority element. O(n)"""
         if self.head is None:
             return None
 
         # Find node with minimum priority
         min_node = self.head
-        min_prev = None
+        min_prev: Optional[PriorityNode] = None
         current = self.head
-        prev = None
+        prev: Optional[PriorityNode] = None
 
         while current:
             if current.priority < min_node.priority:
@@ -404,7 +407,7 @@ class PriorityQueueUnsortedLinkedList:
         self.size -= 1
         return data
 
-    def peek(self):
+    def peek(self) -> Optional[Any]:
         """Return highest priority element. O(n)"""
         if self.head is None:
             return None
@@ -416,13 +419,13 @@ class PriorityQueueUnsortedLinkedList:
             current = current.next
         return min_node.data
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.head is None:
             return "Empty"
-        values = []
+        values: list[str] = []
         current = self.head
         while current:
             values.append(f"({current.priority}, {current.data})")
@@ -441,14 +444,14 @@ class PriorityQueueSortedLinkedList:
     - peek(): O(1) - look at head
     """
 
-    def __init__(self):
-        self.head = None
-        self.size = 0
+    def __init__(self) -> None:
+        self.head: Optional[PriorityNode] = None
+        self.size: int = 0
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return self.head is None
 
-    def enqueue(self, data, priority):
+    def enqueue(self, data: Any, priority: int) -> None:
         """Add element in sorted position. O(n)"""
         new_node = PriorityNode(data, priority)
 
@@ -465,7 +468,7 @@ class PriorityQueueSortedLinkedList:
             current.next = new_node
         self.size += 1
 
-    def dequeue(self):
+    def dequeue(self) -> Optional[Any]:
         """Remove and return highest priority element. O(1)"""
         if self.head is None:
             return None
@@ -474,19 +477,19 @@ class PriorityQueueSortedLinkedList:
         self.size -= 1
         return data
 
-    def peek(self):
+    def peek(self) -> Optional[Any]:
         """Return highest priority element. O(1)"""
         if self.head is None:
             return None
         return self.head.data
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.head is None:
             return "Empty"
-        values = []
+        values: list[str] = []
         current = self.head
         while current:
             values.append(f"({current.priority}, {current.data})")
