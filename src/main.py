@@ -7,6 +7,7 @@ from linked_list.linked_list import (
 from stack_queue.stack import test_stack
 from stack_queue.queue import test_queue, test_queue_using_stacks, test_priority_queues
 from trees.binary_tree import test_binary_search_tree
+from trees.avl_tree import test_avl_tree
 
 
 if __name__ == "__main__":
@@ -19,3 +20,4 @@ if __name__ == "__main__":
     test_queue_using_stacks()
     test_priority_queues()
     test_binary_search_tree()
+    test_avl_tree()
