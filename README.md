@@ -2,6 +2,24 @@
 
 A Python implementation of fundamental data structures with comprehensive test cases.
 
+## Table of Contents
+
+- [Project Structure](#project-structure)
+- [Data Structures](#data-structures)
+  - [1. Linked Lists](#1-linked-lists)
+    - [1.1 Head Only vs Head + Tail Reference](#11-head-only-vs-head--tail-reference)
+    - [1.2 Singly vs Doubly Linked List](#12-singly-vs-doubly-linked-list)
+  - [2. Stack](#2-stack)
+  - [3. Queue](#3-queue)
+    - [3.1 Queue Using Two Stacks](#31-queue-using-two-stacks)
+  - [4. Priority Queue](#4-priority-queue)
+  - [5. Trees](#5-trees)
+    - [5.1 Binary Tree](#51-binary-tree)
+    - [5.2 Binary Search Tree](#52-binary-search-tree)
+    - [5.3 AVL Tree](#53-avl-tree-self-balancing-bst)
+- [Running Tests](#running-tests)
+- [Requirements](#requirements)
+
 ## Project Structure
 
 ```
@@ -14,7 +32,8 @@ dsa/
     │   ├── stack.py            # Stack implementation
     │   └── queue.py            # Queue implementation
     └── trees/
-        └── binary_tree.py      # Binary Search Tree implementation
+        ├── binary_tree.py      # Binary Search Tree implementation
+        └── avl_tree.py         # AVL Tree (self-balancing BST)
 ```
 
 ## Data Structures
@@ -41,6 +60,80 @@ Three variants with different trade-offs:
 | delete_last() | O(n) | O(n) | O(1) |
 | delete_at(index) | O(n) | O(n) | O(n) |
 | search() | O(n) | O(n) | O(n) |
+
+#### 1.1 Head Only vs Head + Tail Reference
+
+```
+Head Only:                      Head + Tail:
+
+HEAD                            HEAD                 TAIL
+  |                               |                    |
+  v                               v                    v
+[1] -> [2] -> [3] -> None       [1] -> [2] -> [3] -> None
+```
+
+| Aspect | Head Only | Head + Tail |
+|--------|-----------|-------------|
+| Memory | Less (1 pointer) | More (2 pointers) |
+| append() | O(n) - must traverse | O(1) - use tail |
+| prepend() | O(1) | O(1) |
+| delete_last() | O(n) | O(n)* |
+| Implementation | Simpler | Slightly more complex |
+
+*delete_last() is still O(n) for singly linked with tail because we need the node before tail. Only doubly linked achieves O(1).
+
+**When to Use Which:**
+
+| Scenario | Use | Why |
+|----------|-----|-----|
+| Stack (LIFO) | Head Only | Only need prepend/delete_first - both O(1) |
+| Queue (FIFO) | Head + Tail | Need O(1) append (enqueue) and O(1) delete_first (dequeue) |
+| Frequent append operations | Head + Tail | O(1) vs O(n) append |
+| Minimal memory usage | Head Only | One less pointer to maintain |
+| Simple implementation | Head Only | No tail pointer to update |
+
+**Summary:**
+- **Head Only**: Best for stack operations or when memory is critical
+- **Head + Tail**: Best for queue operations or frequent appends
+
+#### 1.2 Singly vs Doubly Linked List
+
+```
+Singly Linked:     Doubly Linked:
+
+  +------+         +------+------+
+  | data |         | prev | data |
+  | next |---->    |<-----| next |----->
+  +------+         +------+------+
+
+  Each node: 2 fields    Each node: 3 fields
+  (data + next)          (prev + data + next)
+```
+
+| Aspect | Singly Linked | Doubly Linked |
+|--------|---------------|---------------|
+| Memory per node | Less (no prev pointer) | More (extra prev pointer) |
+| Traversal | Forward only | Forward and backward |
+| Delete node (given pointer) | O(n) - need to find previous | O(1) - has prev pointer |
+| Delete last | O(n) - must traverse | O(1) - use tail.prev |
+| Implementation | Simpler | More complex |
+
+**When to Use Which:**
+
+| Scenario | Use | Why |
+|----------|-----|-----|
+| Memory constrained | Singly | Less memory per node |
+| Simple stack/queue | Singly | Only need head/tail operations |
+| Frequent delete_last() | Doubly | O(1) vs O(n) |
+| Need backward traversal | Doubly | Has prev pointer |
+| Browser history (back/forward) | Doubly | Navigate both directions |
+| Undo/Redo functionality | Doubly | Move back and forth |
+| LRU Cache | Doubly | O(1) removal from middle |
+| Music playlist (prev/next) | Doubly | Navigate both directions |
+
+**Summary:**
+- **Default choice**: Singly linked (simpler, less memory)
+- **Choose Doubly when**: Need O(1) delete_last, backward traversal, or O(1) removal of arbitrary nodes
 
 **Usage:**
 ```python
@@ -117,7 +210,7 @@ print(queue.dequeue())  # 1
 print(queue.peek())     # 2
 ```
 
-#### Queue Using Two Stacks
+#### 3.1 Queue Using Two Stacks
 
 Alternative queue implementation using two stacks with amortized O(1) operations.
 
@@ -256,7 +349,7 @@ print(pq.dequeue())  # High (priority 1)
 
 ### 5. Trees
 
-#### What is a Binary Tree?
+#### 5.1 Binary Tree
 
 A binary tree is a hierarchical data structure where each node has **at most 2 children** (left and right).
 
@@ -297,7 +390,7 @@ Full:           Complete:       Perfect:        Degenerate:
 - Perfect = Full + Complete + all leaves at same level
 - Balanced trees (AVL, Red-Black) guarantee O(log n) operations
 
-#### Binary Search Tree
+#### 5.2 Binary Search Tree
 
 A tree where left < root < right for all nodes.
 
@@ -437,6 +530,329 @@ for val in [50, 30, 70, 20, 40]:
 print(bst.inorder())      # [20, 30, 40, 50, 70]
 print(bst.search(30))     # TreeNode with data=30
 print(bst.height())       # 2
+```
+
+#### 5.3 AVL Tree (Self-Balancing BST)
+
+An AVL tree is a self-balancing Binary Search Tree where the height difference between left and right subtrees is at most 1 for every node.
+
+**Why AVL Tree?**
+
+```
+BST with ascending insertions (1,2,3,4,5,6,7):     AVL with same insertions:
+
+1                                                        4
+ \                                                      / \
+  2                                                    2   6
+   \                                                  / \ / \
+    3                 Height: 6 (degenerate)         1  3 5  7    Height: 2
+     \                Operations: O(n)
+      4                                              Operations: O(log n)
+       \
+        5
+         \
+          6
+           \
+            7
+```
+
+| Operation | BST (worst) | AVL (guaranteed) |
+|-----------|-------------|------------------|
+| insert() | O(n) | O(log n) |
+| delete() | O(n) | O(log n) |
+| search() | O(log n) | O(log n) |
+
+**Balance Factor:**
+
+```
+Balance Factor = height(left subtree) - height(right subtree)
+
+| Balance Factor | Meaning |
+|----------------|---------|
+| -1, 0, 1 | Balanced |
+| > 1 | Left-heavy (needs rotation) |
+| < -1 | Right-heavy (needs rotation) |
+```
+
+**Rotations:**
+
+AVL uses 4 types of rotations to maintain balance:
+
+| Case | Condition | Rotation | Example |
+|------|-----------|----------|---------|
+| Left-Left (LL) | balance > 1 and left child is left-heavy | Right rotation | Insert 30, 20, 10 |
+| Right-Right (RR) | balance < -1 and right child is right-heavy | Left rotation | Insert 10, 20, 30 |
+| Left-Right (LR) | balance > 1 and left child is right-heavy | Left then Right | Insert 30, 10, 20 |
+| Right-Left (RL) | balance < -1 and right child is left-heavy | Right then Left | Insert 10, 30, 20 |
+
+**Rotation Diagrams:**
+
+```
+Right Rotation (LL case):        Left Rotation (RR case):
+
+    y                x               x                  y
+   / \              / \             / \                / \
+  x   C    -->     A   y           A   y     -->      x   C
+ / \                  / \             / \            / \
+A   B                B   C           B   C          A   B
+```
+
+```
+Left-Right (LR case):                Right-Left (RL case):
+
+    z               z               x           z               z               x
+   /               /               / \           \               \             / \
+  y      -->      x      -->      y   z           y     -->       x    -->    z   y
+   \             /                                /                 \
+    x           y                                x                   y
+```
+
+**Why AVL Insert Returns Node but BST Doesn't:**
+
+```python
+# BST: Direct assignment, no return needed
+def _insert_recursive(self, node, data):
+    if data < node.data:
+        if node.left is None:
+            node.left = TreeNode(data)  # Just link new node
+        else:
+            self._insert_recursive(node.left, data)
+    # node is still the root - no return needed
+
+# AVL: Must return because rotation can change subtree root
+def _insert_recursive(self, node, data):
+    if node is None:
+        return AVLNode(data)
+    if data < node.data:
+        node.left = self._insert_recursive(node.left, data)
+    else:
+        node.right = self._insert_recursive(node.right, data)
+    return self._rebalance(node)  # May return DIFFERENT node!
+```
+
+```
+Insert 3 into AVL:       After rotation, root changes!
+
+    5                        5                      4
+   /          insert 3      /        rotate        / \
+  4           -------->    4         ------>      3   5
+                          /
+                         3
+
+Subtree root changed from 5 to 4!
+Parent must update its child pointer to new root.
+```
+
+| Tree | After Insert | Root Changes? | Need Return? |
+|------|--------------|---------------|--------------|
+| BST | Just links new node | No | No |
+| AVL | May rotate subtree | Yes | Yes |
+
+**Summary:** BST structure only grows (no reshape), AVL rotations can change subtree root - parent needs the new root to update its pointer.
+
+**AVL vs BST Method Comparison:**
+
+| Method | Same Logic? | Difference |
+|--------|-------------|------------|
+| `insert()` | No | AVL: returns node + rebalances |
+| `delete()` | No | AVL: returns node + rebalances |
+| `search()` | Yes | Identical - just traverse |
+| `find_min()` | Yes | Identical - go left |
+| `find_max()` | Yes | Identical - go right |
+| `inorder()` | Yes | Identical traversal |
+| `preorder()` | Yes | Identical traversal |
+| `postorder()` | Yes | Identical traversal |
+| `level_order()` | Yes | Identical BFS |
+| `height()` | Slight | AVL: O(1) stored in node, BST: O(n) computed |
+
+**AVL-Only Methods (not in BST):**
+
+| Method | Purpose | Time |
+|--------|---------|------|
+| `_get_balance_factor()` | Calculate balance = height(left) - height(right) | O(1) |
+| `_update_height()` | Update node's height after changes | O(1) |
+| `_rotate_left()` | Left rotation for RR/RL cases | O(1) |
+| `_rotate_right()` | Right rotation for LL/LR cases | O(1) |
+| `_rebalance()` | Check balance and apply rotations if needed | O(1) |
+| `is_balanced()` | Verify tree is balanced (should always be True) | O(n) |
+
+**How `_rebalance()` Works:**
+
+```
+Step 1: Update height of CURRENT node only
+Step 2: Calculate balance factor of CURRENT node (left_height - right_height)
+Step 3: Check if CURRENT node is unbalanced (|balance| > 1)
+Step 4: If unbalanced, determine case and rotate:
+
+Balance > 1 (Left-heavy):
+├── Left child balance >= 0  →  LL Case  →  Right rotation
+└── Left child balance < 0   →  LR Case  →  Left(left) then Right(node)
+
+Balance < -1 (Right-heavy):
+├── Right child balance <= 0 →  RR Case  →  Left rotation
+└── Right child balance > 0  →  RL Case  →  Right(right) then Left(node)
+```
+
+**Height Update Process (Bottom-Up):**
+
+`_rebalance()` is called on each node as recursion unwinds, so all affected ancestors get updated one at a time:
+
+```
+Delete 20 from tree:
+
+        50              Step 1: Go DOWN to find 20
+       /  \
+      30   70           Step 2: Delete 20, return None
+     /
+    20 <-- delete
+
+Coming back UP (recursion unwinds):
+
+        50              3. _rebalance(50) → _update_height(50)
+       /  \                height = max(0, 0) + 1 = 1
+      30   70           2. _rebalance(30) → _update_height(30)
+     /                     height = max(-1, -1) + 1 = 0
+   None                 1. Return None (20 deleted)
+
+Order of calls:
+delete(50, 20)
+  └─> delete(30, 20)
+        └─> delete(20, 20) → returns None
+        └─> _rebalance(30) → updates height of 30 ONLY
+  └─> _rebalance(50) → updates height of 50 ONLY
+```
+
+**Why bottom-up works:**
+- Children are processed before parents
+- When updating parent's height, children's heights are already correct
+- `height = max(left.height, right.height) + 1` gives accurate result
+
+```python
+def _rebalance(self, node):
+    # Step 1: Update height
+    self._update_height(node)
+
+    # Step 2: Calculate balance factor
+    balance = self._get_balance_factor(node)
+
+    # Step 3 & 4: Check and apply rotations
+
+    # Left-heavy (balance > 1)
+    if balance > 1:
+        # LR Case: Left child is right-heavy
+        if self._get_balance_factor(node.left) < 0:
+            node.left = self._rotate_left(node.left)  # First rotation
+        # LL Case (or after LR adjustment)
+        return self._rotate_right(node)
+
+    # Right-heavy (balance < -1)
+    if balance < -1:
+        # RL Case: Right child is left-heavy
+        if self._get_balance_factor(node.right) > 0:
+            node.right = self._rotate_right(node.right)  # First rotation
+        # RR Case (or after RL adjustment)
+        return self._rotate_left(node)
+
+    # Already balanced
+    return node
+```
+
+**Rotation Decision Table:**
+
+| Balance | Child Balance | Case | Rotations |
+|---------|---------------|------|-----------|
+| > 1 | left >= 0 | LL | Right(node) |
+| > 1 | left < 0 | LR | Left(left) → Right(node) |
+| < -1 | right <= 0 | RR | Left(node) |
+| < -1 | right > 0 | RL | Right(right) → Left(node) |
+
+**Key Differences:**
+
+1. **Node structure:**
+```python
+# BST Node: 2 pointers
+class TreeNode:
+    data, left, right
+
+# AVL Node: 2 pointers + height
+class AVLNode:
+    data, left, right, height  # Extra field
+```
+
+2. **Height retrieval:**
+```python
+# BST: O(n) - must traverse entire tree
+def height(self):
+    return self._height_recursive(self.root)
+
+# AVL: O(1) - stored in node, updated during insert/delete
+def height(self):
+    return self._get_height(self.root)
+```
+
+**Why AVL Stores Height but BST Doesn't:**
+
+AVL needs height to calculate balance factor after every insert/delete:
+```python
+balance = height(left) - height(right)
+# If |balance| > 1, need rotation
+```
+
+| Approach | Balance Check | When Used |
+|----------|---------------|-----------|
+| Compute height each time | O(n) | Too slow for every insert/delete |
+| Store height in node | O(1) | Efficient - just read stored value |
+
+```python
+# Without stored height - O(n) each check
+def _get_balance_factor(self, node):
+    left_height = self._compute_height(node.left)   # O(n) traversal
+    right_height = self._compute_height(node.right) # O(n) traversal
+    return left_height - right_height
+
+# With stored height - O(1) each check
+def _get_balance_factor(self, node):
+    return self._get_height(node.left) - self._get_height(node.right)  # O(1)
+```
+
+**Why BST doesn't store height:**
+- BST doesn't check balance - no rebalancing operations
+- Height is rarely needed (only if user explicitly calls `height()`)
+- Computing O(n) once when needed is acceptable
+- Saves memory by not storing extra field in every node
+
+**AVL height is updated:**
+1. After inserting a node
+2. After deleting a node
+3. After each rotation
+
+**Summary:** Only `insert` and `delete` differ (rebalancing logic). Search and traversals are identical since they don't modify tree structure.
+
+**When to Use AVL vs BST:**
+
+| Scenario | Use |
+|----------|-----|
+| Frequent insertions/deletions, rare searches | BST (less rotation overhead) |
+| Frequent searches, data changes rarely | AVL (guaranteed O(log n) search) |
+| Data inserted in sorted order | AVL (BST degenerates) |
+| Need guaranteed performance | AVL |
+
+**Usage:**
+```python
+from trees.avl_tree import AVLTree
+
+avl = AVLTree()
+
+# Insert in ascending order (would be degenerate in BST)
+for val in [1, 2, 3, 4, 5, 6, 7]:
+    avl.insert(val)
+
+print(avl.height())       # 2 (BST would be 6)
+print(avl.inorder())      # [1, 2, 3, 4, 5, 6, 7]
+print(avl.is_balanced())  # True
+
+avl.delete(4)
+print(avl.is_balanced())  # True (auto-rebalanced)
 ```
 
 ## Running Tests
