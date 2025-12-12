@@ -17,6 +17,8 @@ A Python implementation of fundamental data structures with comprehensive test c
     - [5.1 Binary Tree](#51-binary-tree)
     - [5.2 Binary Search Tree](#52-binary-search-tree)
     - [5.3 AVL Tree](#53-avl-tree-self-balancing-bst)
+  - [6. Heaps](#6-heaps)
+    - [6.1 PriorityQueueHeap](#61-priorityqueueheap)
 - [Running Tests](#running-tests)
 - [Requirements](#requirements)
 
@@ -31,9 +33,11 @@ dsa/
     ├── stack_queue/
     │   ├── stack.py            # Stack implementation
     │   └── queue.py            # Queue implementation
-    └── trees/
-        ├── binary_tree.py      # Binary Search Tree implementation
-        └── avl_tree.py         # AVL Tree (self-balancing BST)
+    ├── trees/
+    │   ├── binary_tree.py      # Binary Search Tree implementation
+    │   └── avl_tree.py         # AVL Tree (self-balancing BST)
+    └── heaps/
+        └── binary_heap.py      # MinHeap and MaxHeap implementations
 ```
 
 ## Data Structures
@@ -231,21 +235,22 @@ print(queue.dequeue())  # 1
 
 ### 4. Priority Queue
 
-Min-Priority Queue implementations (lower value = higher priority). Four variants comparing sorted vs unsorted and list vs linked list:
+Min-Priority Queue implementations (lower value = higher priority). Five variants comparing different approaches:
 
-| Implementation | enqueue() | dequeue() | peek() |
-|----------------|-----------|-----------|--------|
-| `PriorityQueueUnsortedList` | O(1) | O(n) | O(n) |
-| `PriorityQueueSortedList` | O(n) | O(1) | O(1) |
-| `PriorityQueueUnsortedLinkedList` | O(1) | O(n) | O(n) |
-| `PriorityQueueSortedLinkedList` | O(n) | O(1) | O(1) |
-| Heap (Binary Heap) | O(log n) | O(log n) | O(1) |
+| Implementation | enqueue() | dequeue() | peek() | Location |
+|----------------|-----------|-----------|--------|----------|
+| `PriorityQueueUnsortedList` | O(1) | O(n) | O(n) | queue.py |
+| `PriorityQueueSortedList` | O(n) | O(1) | O(1) | queue.py |
+| `PriorityQueueUnsortedLinkedList` | O(1) | O(n) | O(n) | queue.py |
+| `PriorityQueueSortedLinkedList` | O(n) | O(1) | O(1) | queue.py |
+| `PriorityQueueHeap` | O(log n) | O(log n) | O(1) | binary_heap.py |
 
-*Note: Heap-based priority queue will be covered when heaps data structure is introduced.*
+*See [6.1 PriorityQueueHeap](#61-priorityqueueheap) for detailed heap-based implementation.*
 
 **Trade-offs:**
 - **Unsorted**: Fast insert, slow removal (good for many inserts, few removals)
 - **Sorted**: Slow insert, fast removal (good for few inserts, many removals)
+- **Heap**: Balanced performance for both (best for mixed operations)
 
 **Implementation Difference:**
 
@@ -340,6 +345,18 @@ The bottleneck is **finding** the element, not removing it. This is why **Heaps*
 from stack_queue.queue import PriorityQueueSortedList
 
 pq = PriorityQueueSortedList()
+pq.enqueue("Low", 3)
+pq.enqueue("High", 1)
+pq.enqueue("Urgent", 0)
+print(pq.dequeue())  # Urgent (priority 0)
+print(pq.dequeue())  # High (priority 1)
+```
+
+**Heap-based Priority Queue (recommended for balanced performance):**
+```python
+from heaps.binary_heap import PriorityQueueHeap
+
+pq = PriorityQueueHeap()
 pq.enqueue("Low", 3)
 pq.enqueue("High", 1)
 pq.enqueue("Urgent", 0)
@@ -854,6 +871,332 @@ print(avl.is_balanced())  # True
 avl.delete(4)
 print(avl.is_balanced())  # True (auto-rebalanced)
 ```
+
+### 6. Heaps
+
+A binary heap is a complete binary tree that satisfies the heap property.
+
+| Type | Property | Root |
+|------|----------|------|
+| Min-Heap | parent <= children | Smallest element |
+| Max-Heap | parent >= children | Largest element |
+
+**Time Complexity:**
+
+| Operation | Time | Space | Description |
+|-----------|------|-------|-------------|
+| `insert()` | O(log n) | O(1) | Add element, heapify up |
+| `extract_min/max()` | O(log n) | O(1) | Remove root, heapify down |
+| `peek()` | O(1) | O(1) | View root element |
+| `heapify()` | O(n) | O(n) | Build heap (creates copy) |
+| `heapify_inplace()` | O(n) | O(1) | Build heap (modifies original) |
+| `heapify_naive()` | O(n log n) | O(n) | Build heap by inserting one by one |
+| `heap_sort()` | O(n log n) | O(n) | Sort array using heap |
+| `is_empty()` | O(1) | O(1) | Check if empty |
+
+**Why Heap Sort is O(n log n):**
+
+| Step | Operation | Time |
+|------|-----------|------|
+| 1. Build heap | `heapify()` | O(n) |
+| 2. Extract n elements | n × `extract_min/max()` | n × O(log n) = **O(n log n)** |
+
+The key is that **each extraction is O(log n)**, not O(1):
+
+```
+extract_min() / extract_max():
+1. Remove root             - O(1)
+2. Move last to root       - O(1)
+3. heapify_down()          - O(log n)  ← expensive part
+```
+
+`heapify_down()` must potentially traverse from root to leaf to restore heap property. Since heap height = log n, this is O(log n).
+
+**Total:** O(n) + O(n log n) = **O(n log n)**
+
+The O(n) from building is dominated by O(n log n) from extractions.
+
+```
+Example (n=7 elements):
+Extract 1: heapify_down traverses up to 3 levels
+Extract 2: heapify_down traverses up to 3 levels
+Extract 3: heapify_down traverses up to 2 levels
+...
+Total: ~n × log n operations
+```
+
+**MinHeap vs MaxHeap heap_sort:**
+
+| Heap Type | Output Order |
+|-----------|--------------|
+| MinHeap | Ascending (smallest first) |
+| MaxHeap | Descending (largest first) |
+
+**Why Use Python List for Binary Heap:**
+
+A binary heap is always a **complete binary tree**, which maps perfectly to a list:
+
+```
+Tree view:              List view:
+
+        1               [1, 3, 2, 7, 4, 5, 6]
+       / \               0  1  2  3  4  5  6  (indices)
+      3   2
+     / \ / \
+    7  4 5  6
+```
+
+**Index Formulas:**
+```python
+Parent of index i:      (i - 1) // 2
+Left child of index i:  2 * i + 1
+Right child of index i: 2 * i + 2
+```
+
+**Example:**
+```
+Index 0 (value 1):
+  - Left child: 2*0+1 = 1 (value 3)
+  - Right child: 2*0+2 = 2 (value 2)
+
+Index 1 (value 3):
+  - Parent: (1-1)//2 = 0 (value 1)
+  - Left child: 2*1+1 = 3 (value 7)
+```
+
+**Why List is Ideal (not Tree Nodes):**
+
+| Implementation | Pros | Cons |
+|----------------|------|------|
+| List/Array | O(1) parent/child access, cache-friendly, less memory | Only works for complete trees |
+| Tree Nodes | Flexible structure | Extra pointers, more memory, slower |
+
+Since binary heap is always complete, list is the preferred implementation.
+
+**Why No `size` Attribute:**
+
+Unlike linked list implementations, the heap class doesn't need a `size` attribute because Python lists internally store their length:
+
+```
+Python list internal structure:
+┌─────────────────────────┐
+│  ob_size: 5  ← stored!  │  len() just reads this - O(1)
+│  allocated: 8           │
+│  *ob_item → [1,2,3,4,5] │
+└─────────────────────────┘
+```
+
+| Data Structure | Has `size` attr? | Why? |
+|----------------|------------------|------|
+| Linked List | Yes | No internal length, traversal would be O(n) |
+| Stack (linked) | Yes | No internal length, traversal would be O(n) |
+| Heap (list-based) | No | `len(list)` is O(1), reads internal `ob_size` |
+
+Using `len(self.heap)` is O(1), so storing a separate `size` would be redundant.
+
+**Why `extract_min/max()` not `delete()`:**
+
+`extract_min()` / `extract_max()` is the conventional naming for heap's delete operation:
+
+| Name | Implies | Used in |
+|------|---------|---------|
+| `extract_min/max()` | Remove root AND return value | Textbooks (CLRS), algorithms |
+| `pop()` | Remove and return | Python `heapq` |
+| `delete()` | Just remove, unclear what | Generic structures |
+
+Why `extract` is better:
+- **Clear which element:** `extract_min()` vs `delete()` (delete what?)
+- **Implies value returned:** "Extract" = take out and return
+- **Distinguishes from specific value deletion:** `extract_min()` always removes root, `delete(value)` would need O(n) search
+- **Matches standard CS terminology:** CLRS textbook uses `EXTRACT-MIN`, `EXTRACT-MAX`
+
+```python
+# Clear and explicit
+value = min_heap.extract_min()  # Removes and returns minimum
+value = max_heap.extract_max()  # Removes and returns maximum
+
+# Confusing
+value = heap.delete()  # Delete what? Return what?
+```
+
+**Heapify Up vs Heapify Down:**
+
+| Operation | When Used | Direction |
+|-----------|-----------|-----------|
+| `_heapify_up()` | After insert | Bubble up from leaf to root |
+| `_heapify_down()` | After extract | Sink down from root to leaf |
+
+```
+Insert 0 into MinHeap [1, 3, 2]:     Extract min from MinHeap [1, 3, 2]:
+
+Step 1: Append          Step 1: Remove root, move last to root
+[1, 3, 2, 0]            [2, 3]
+        1                       2
+       / \                     /
+      3   2                   3
+     /
+    0  <-- new              Step 2: Heapify down
+                            [2, 3] → already valid
+Step 2: Heapify up
+[1, 3, 2, 0]
+     ↓
+[1, 0, 2, 3]
+     ↓
+[0, 1, 2, 3]  <-- 0 bubbled up to root
+```
+
+**heapify Methods Comparison:**
+
+| Method | Time | Space | Modifies Original |
+|--------|------|-------|-------------------|
+| `heapify()` | O(n) | O(n) | No (creates copy) |
+| `heapify_inplace()` | O(n) | O(1) | Yes |
+| `heapify_naive()` | O(n log n) | O(n) | No (creates new) |
+
+```python
+# heapify() - O(n) time, O(n) space (creates copy)
+def heapify(self, array):
+    self.heap = array.copy()  # Copy - original unchanged
+    for i in range(len(self.heap) // 2 - 1, -1, -1):
+        self._heapify_down(i)
+
+# heapify_inplace() - O(n) time, O(1) space (modifies original)
+def heapify_inplace(self, array):
+    self.heap = array  # Reference - original modified
+    for i in range(len(self.heap) // 2 - 1, -1, -1):
+        self._heapify_down(i)
+
+# heapify_naive() - O(n log n) time, O(n) space
+def heapify_naive(self, array):
+    self.heap = []
+    for item in array:        # n items
+        self.insert(item)     # O(log n) each
+```
+
+**In-place vs Copy behavior:**
+```python
+# heapify() - original unchanged
+arr = [5, 3, 8, 1, 2]
+heap.heapify(arr)
+print(arr)        # [5, 3, 8, 1, 2]  <-- unchanged
+print(heap.heap)  # [1, 2, 8, 3, 5]  <-- heap's copy
+
+# heapify_inplace() - original modified
+arr = [5, 3, 8, 1, 2]
+heap.heapify_inplace(arr)
+print(arr)        # [1, 2, 8, 3, 5]  <-- modified!
+print(heap.heap)  # [1, 2, 8, 3, 5]  <-- same object
+print(arr is heap.heap)  # True
+```
+
+**Why heapify() is O(n) not O(n log n):**
+
+`heapify()` starts from last non-leaf and works up:
+- Half the nodes are leaves (no work needed)
+- Quarter of nodes do 1 swap max
+- Eighth of nodes do 2 swaps max
+- Sum = O(n)
+
+```
+        1         Level 0: 1 node,  up to 3 swaps (but only 1 node)
+       / \
+      3   2       Level 1: 2 nodes, up to 2 swaps each
+     / \ / \
+    7  4 5  6     Level 2: 4 nodes, up to 1 swap each
+                  Level 3: (leaves) 0 swaps
+
+Most nodes are near the bottom where they do FEWER swaps.
+```
+
+**Mathematical proof:** Sum = n/4 × 1 + n/8 × 2 + n/16 × 3 + ... = O(n)
+
+**Usage:**
+```python
+from heaps.binary_heap import MinHeap, MaxHeap
+
+# MinHeap - smallest at root
+min_heap = MinHeap()
+min_heap.insert(5)
+min_heap.insert(3)
+min_heap.insert(8)
+print(min_heap.peek())        # 3 (smallest)
+print(min_heap.extract_min()) # 3
+
+# MaxHeap - largest at root
+max_heap = MaxHeap()
+max_heap.insert(5)
+max_heap.insert(3)
+max_heap.insert(8)
+print(max_heap.peek())        # 8 (largest)
+print(max_heap.extract_max()) # 8
+
+# Build heap from array - O(n)
+arr = [5, 3, 8, 1, 2, 9, 4]
+min_heap.heapify(arr)
+print(min_heap.heap)  # [1, 2, 4, 3, 5, 9, 8]
+```
+
+**Heap vs Priority Queue:**
+
+The heap implementations can be used as efficient priority queues:
+
+| Implementation | enqueue | dequeue | peek |
+|----------------|---------|---------|------|
+| Unsorted List | O(1) | O(n) | O(n) |
+| Sorted List | O(n) | O(1) | O(1) |
+| Binary Heap | O(log n) | O(log n) | O(1) |
+
+Heap provides balanced O(log n) for both insert and remove operations.
+
+#### 6.1 PriorityQueueHeap
+
+A priority queue implementation using MinHeap (lower value = higher priority).
+
+| Method | Time | Description |
+|--------|------|-------------|
+| `enqueue(data, priority)` | O(log n) | Add element with priority |
+| `dequeue()` | O(log n) | Remove highest priority element |
+| `peek()` | O(1) | View highest priority element |
+| `is_empty()` | O(1) | Check if empty |
+
+**How it works:**
+
+```
+enqueue("Low", 3), enqueue("High", 1), enqueue("Urgent", 0):
+
+Internal heap (sorted by priority):
+        (0, Urgent)      ← root is always highest priority
+       /           \
+(1, High)    (3, Low)
+
+dequeue() returns: "Urgent" (priority 0)
+dequeue() returns: "High" (priority 1)
+dequeue() returns: "Low" (priority 3)
+```
+
+**Usage:**
+```python
+from heaps.binary_heap import PriorityQueueHeap
+
+pq = PriorityQueueHeap()
+pq.enqueue("Low", 3)
+pq.enqueue("High", 1)
+pq.enqueue("Urgent", 0)
+
+print(pq.peek())     # Urgent
+print(pq.dequeue())  # Urgent (priority 0)
+print(pq.dequeue())  # High (priority 1)
+print(pq.dequeue())  # Low (priority 3)
+```
+
+**When to use which priority queue:**
+
+| Scenario | Best Implementation |
+|----------|---------------------|
+| Many inserts, few removals | Unsorted List - O(1) insert |
+| Few inserts, many removals | Sorted List - O(1) remove |
+| Balanced insert/remove | **Heap** - O(log n) both |
+| Unknown workload | **Heap** - consistent performance |
 
 ## Running Tests
 
