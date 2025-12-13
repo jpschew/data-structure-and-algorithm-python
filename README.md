@@ -19,6 +19,9 @@ A Python implementation of fundamental data structures with comprehensive test c
     - [5.3 AVL Tree](#53-avl-tree-self-balancing-bst)
   - [6. Heaps](#6-heaps)
     - [6.1 PriorityQueueHeap](#61-priorityqueueheap)
+  - [7. Tries](#7-tries)
+    - [7.1 Trie Operations](#71-trie-operations)
+    - [7.2 Implementation Comparison](#72-implementation-comparison)
 - [Running Tests](#running-tests)
 - [Requirements](#requirements)
 
@@ -36,8 +39,10 @@ dsa/
     ├── trees/
     │   ├── binary_tree.py      # Binary Search Tree implementation
     │   └── avl_tree.py         # AVL Tree (self-balancing BST)
-    └── heaps/
-        └── binary_heap.py      # MinHeap and MaxHeap implementations
+    ├── heaps/
+    │   └── binary_heap.py      # MinHeap and MaxHeap implementations
+    └── tries/
+        └── trie.py             # Trie implementations (4 variants)
 ```
 
 ## Data Structures
@@ -1197,6 +1202,380 @@ print(pq.dequeue())  # Low (priority 3)
 | Few inserts, many removals | Sorted List - O(1) remove |
 | Balanced insert/remove | **Heap** - O(log n) both |
 | Unknown workload | **Heap** - consistent performance |
+
+### 7. Tries
+
+A Trie (prefix tree) is a tree-like data structure used for efficient retrieval of keys in a dataset of strings. Common use cases include **autocomplete**, **spell checking**, and **IP routing**.
+
+```
+Trie storing "app", "apple", "application", "banana":
+
+        root
+       /    \
+      a      b
+      |      |
+      p      a
+      |      |
+      p*     n
+     / \     |
+    l   i    a
+    |   |    |
+    e*  c    n
+        |    |
+        a    a*
+        |
+        t
+        |
+        i
+        |
+        o
+        |
+        n*
+
+* = end of word (is_end_of_word = True)
+```
+
+**Four implementations with different trade-offs:**
+
+| Class | Node Storage | Child Lookup | Memory | Why Memory Pattern |
+|-------|--------------|--------------|--------|-------------------|
+| `Trie` | `dict[str, Node]` | O(1) hash | Dynamic | Dict grows with children, has hash table overhead |
+| `TrieLCRS` | child Node + sibling Node | O(k) scan | Minimal | Just pointers, no container overhead |
+| `TrieArray` | `list[Node] * 26` | O(1) index | Fixed 26/node | Pre-allocates 26 slots, wastes space if sparse |
+| `TrieList` | `list[Node]` dynamic | O(k) scan | Dynamic | List grows with children, less overhead than dict |
+
+*k = number of children at each node*
+
+#### 7.1 Trie Operations
+
+**Time Complexity (where m = word length, k = avg children per node):**
+
+| Operation | Trie (Dict) | TrieArray | TrieLCRS | TrieList |
+|-----------|-------------|-----------|----------|----------|
+| `insert(word)` | O(m) | O(m) | O(m × k) | O(m × k) |
+| `search(word)` | O(m) | O(m) | O(m × k) | O(m × k) |
+| `delete(word)` | O(m) | O(m) | O(m × k) | O(m × k) |
+| `starts_with(prefix)` | O(m) | O(m) | O(m × k) | O(m × k) |
+| `auto_complete(prefix)` | O(m + n) | O(m + n) | O(m × k + n) | O(m × k + n) |
+| `get_all_words()` | O(n × m) | O(n × m) | O(n × m) | O(n × m) |
+
+*n = number of words in result*
+
+**insert(word) - How it works:**
+
+```
+Insert "app" into empty trie:
+
+Step 1: Start at root        Step 2: Add 'a'         Step 3: Add 'p'         Step 4: Add 'p', mark end
+
+  root                         root                    root                    root
+                               |                       |                       |
+                               a                       a                       a
+                                                       |                       |
+                                                       p                       p
+                                                                               |
+                                                                               p*
+
+* = is_end_of_word = True
+```
+
+```python
+def insert(self, word: str) -> None:
+    node = self.root
+    for char in word:
+        # Find or create child for this character
+        if char not in node.children:
+            node.children[char] = TrieNode()
+        node = node.children[char]
+    # Mark the last node as end of word
+    if not node.is_end_of_word:
+        node.is_end_of_word = True
+        self.word_count += 1
+```
+
+**How child lookup differs by implementation:**
+
+```python
+# Dict (Trie) - O(1) hash lookup
+if char not in node.children:          # Hash lookup
+    node.children[char] = TrieNode()   # Direct assignment
+
+# Array (TrieArray) - O(1) index lookup
+index = ord(char) - ord('a')           # Convert 'a'->0, 'b'->1, etc.
+if node.children[index] is None:       # Direct index access
+    node.children[index] = TrieNodeArray()
+
+# LCRS/List - O(k) linear scan
+child = None
+for c in node.children:                # Must scan all children
+    if c.char == char:
+        child = c
+        break
+if child is None:
+    child = TrieNodeList(char)
+    node.children.append(child)
+```
+
+**delete(word) - How it works:**
+
+Delete is more complex because we need to:
+1. Find the word and unmark `is_end_of_word`
+2. Clean up unused nodes (nodes that are not end of any word and have no children)
+
+```
+Delete "app" from trie containing "app", "apple":
+
+Before:                 After:
+  root                    root
+  |                       |
+  a                       a
+  |                       |
+  p                       p
+  |                       |
+  p* ← unmark             p  ← no longer marked, but keep (path to 'l')
+  |                       |
+  l                       l
+  |                       |
+  e*                      e*
+
+The 'p' node is kept because it's still part of "apple".
+```
+
+```
+Delete "apple" from trie containing only "apple":
+
+Before:                 After cleanup:
+  root                    root (empty)
+  |
+  a    ← delete (no children, not end of word)
+  |
+  p    ← delete (no children, not end of word)
+  |
+  p    ← delete (no children, not end of word)
+  |
+  l    ← delete (no children, not end of word)
+  |
+  e*   ← unmark first, then delete (no children)
+
+All nodes removed because none are needed.
+```
+
+```python
+def _delete_recursive(self, node: TrieNode, word: str, index: int) -> bool:
+    # Base case: reached end of word
+    if index == len(word):
+        if not node.is_end_of_word:
+            return False  # Word doesn't exist
+        node.is_end_of_word = False
+        self.word_count -= 1
+        # Return True if node can be deleted (no children)
+        return not self._has_children(node)
+
+    char = word[index]
+    if char not in node.children:
+        return False  # Word doesn't exist
+
+    # Recurse to next character
+    should_delete_child = self._delete_recursive(
+        node.children[char], word, index + 1
+    )
+
+    # If child should be deleted, remove it
+    if should_delete_child:
+        del node.children[char]
+        # Current node can be deleted if no children and not end of word
+        return not self._has_children(node) and not node.is_end_of_word
+
+    return False
+```
+
+**auto_complete(prefix) - Autocomplete:**
+
+This is the key feature of tries - finding all words that start with a given prefix.
+
+```
+Trie with "app", "apple", "application", "apply", "banana":
+
+auto_complete("app") returns: ["app", "apple", "application", "apply"]
+
+Step 1: Navigate to prefix "app"
+        root
+        |
+        a
+        |
+        p
+        |
+        p* ← start collecting from here
+
+Step 2: Collect all words from this node (DFS)
+        p* ← "app" (is_end_of_word)
+       /|\
+      l i y
+      |  |  |
+      e* c  * ← "apply"
+         |
+         a
+         |
+         t
+         |
+         i
+         |
+         o
+         |
+         n* ← "application"
+
+Result: ["app", "apple", "application", "apply"]
+```
+
+```python
+def auto_complete(self, prefix: str) -> list[str]:
+    # Step 1: Find the node at end of prefix
+    node = self._find_node(prefix)
+    if node is None:
+        return []  # Prefix doesn't exist
+
+    # Step 2: Collect all words from this node
+    words: list[str] = []
+    self._collect_words(node, prefix, words)
+    return words
+
+def _collect_words(self, node: TrieNode, prefix: str, words: list[str]) -> None:
+    # If this node marks end of a word, add it
+    if node.is_end_of_word:
+        words.append(prefix)
+    # Recursively collect from all children
+    for char, child in node.children.items():
+        self._collect_words(child, prefix + char, words)
+```
+
+**Why Trie is efficient for autocomplete:**
+
+| Approach | Time to find words with prefix "app" |
+|----------|--------------------------------------|
+| Linear search through word list | O(n × m) - check every word |
+| Binary search (sorted list) | O(log n + k × m) - find range, then collect |
+| Trie | O(p + k × m) - navigate prefix, then collect |
+
+*n = total words, m = avg word length, p = prefix length, k = matching words*
+
+For autocomplete with many words but few matches, Trie is significantly faster because it only visits relevant nodes.
+
+#### 7.2 Implementation Comparison
+
+**Node Structure Comparison:**
+
+```python
+# Dict-based (Trie) - character stored as dict key
+class TrieNode:
+    def __init__(self):
+        self.children: dict[str, TrieNode] = {}
+        self.is_end_of_word: bool = False
+
+# Array-based (TrieArray) - character encoded as index (a=0, b=1, ...)
+class TrieNodeArray:
+    def __init__(self):
+        self.children: list[Optional[TrieNodeArray]] = [None] * 26
+        self.is_end_of_word: bool = False
+
+# LCRS (TrieLCRS) - character stored in node, siblings linked
+class TrieNodeLCRS:
+    def __init__(self, char: str = ""):
+        self.char: str = char
+        self.child: Optional[TrieNodeLCRS] = None
+        self.sibling: Optional[TrieNodeLCRS] = None
+        self.is_end_of_word: bool = False
+
+# List-based (TrieList) - character stored in node, children in list
+class TrieNodeList:
+    def __init__(self, char: str = ""):
+        self.char: str = char
+        self.children: list[TrieNodeList] = []
+        self.is_end_of_word: bool = False
+```
+
+**Why different structures store character differently:**
+
+| Structure | Where char stored | Why |
+|-----------|-------------------|-----|
+| Dict | Key in parent's dict | `children['a']` gives direct O(1) access |
+| Array | Index in parent's array | `children[0]` = 'a', O(1) access |
+| LCRS | In node itself | Must scan siblings to find, needs char to compare |
+| List | In node itself | Must scan list to find, needs char to compare |
+
+**Space Complexity:**
+
+| Implementation | Memory per Node | Total Space | Notes |
+|----------------|-----------------|-------------|-------|
+| Dict | ~56 bytes + dict overhead | O(total unique chars) | Dict has overhead but only stores existing children |
+| Array | ~232 bytes (26 pointers) | O(nodes × 26) | Fixed 26 slots even if empty |
+| LCRS | ~40 bytes (3 pointers + char) | O(total unique chars) | Most memory efficient |
+| List | ~56 bytes + list overhead | O(total unique chars) | Similar to Dict |
+
+**When to use which:**
+
+| Scenario | Best Choice | Why |
+|----------|-------------|-----|
+| General purpose | `Trie` (Dict) | O(1) lookup, flexible character set |
+| Fixed alphabet (a-z only) | `TrieArray` | Fastest lookup, predictable memory |
+| Memory constrained | `TrieLCRS` | Minimal memory per node |
+| Large sparse trie | `TrieLCRS` / `TrieList` | Array wastes 26 slots per node |
+| Millions of words | `TrieLCRS` | Memory savings add up significantly |
+| Learning/educational | `TrieLCRS` | Understand tree pointer structures |
+| Simple code, any charset | `TrieList` | Simpler than LCRS, similar performance |
+
+**Performance vs Memory Trade-off:**
+
+```
+                    Lookup Speed
+                         ▲
+                         │
+          TrieArray ●    │    ● Trie (Dict)
+             (O(1))      │      (O(1))
+                         │
+                         │
+                         │
+                         │
+          TrieList ●─────┼────● TrieLCRS
+            (O(k))       │      (O(k))
+                         │
+                         └──────────────────► Memory Efficiency
+
+Dict/Array: Fast but more memory
+LCRS/List: Slower but less memory
+```
+
+**Usage:**
+
+```python
+from tries.trie import Trie, TrieLCRS, TrieArray, TrieList
+
+# Dictionary-based (recommended for most cases)
+trie = Trie()
+trie.insert("apple")
+trie.insert("app")
+trie.insert("application")
+
+print(trie.search("app"))           # True
+print(trie.search("appl"))          # False (not a complete word)
+print(trie.starts_with("app"))      # True
+print(trie.auto_complete("app"))  # ['apple', 'app', 'application']
+
+trie.delete("app")
+print(trie.search("app"))           # False
+print(trie.search("apple"))         # True (still exists)
+
+# Array-based (for a-z only, fastest lookup)
+trie_array = TrieArray()
+trie_array.insert("hello")
+trie_array.insert("help")
+print(trie_array.auto_complete("hel"))  # ['hello', 'help']
+
+# LCRS (minimal memory)
+trie_lcrs = TrieLCRS()
+trie_lcrs.insert("cat")
+trie_lcrs.insert("car")
+print(trie_lcrs.auto_complete("ca"))  # ['cat', 'car']
+```
 
 ## Running Tests
 
