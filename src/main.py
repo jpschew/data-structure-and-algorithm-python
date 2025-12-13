@@ -14,6 +14,13 @@ from heaps.binary_heap import (
     test_heap_comparison,
     test_priority_queue_heap,
 )
+from tries.trie import (
+    test_trie,
+    test_trie_lcrs,
+    test_trie_array,
+    test_trie_list,
+    test_trie_comparison,
+)
 
 
 if __name__ == "__main__":
@@ -31,3 +38,8 @@ if __name__ == "__main__":
     test_max_heap()
     test_heap_comparison()
     test_priority_queue_heap()
+    test_trie()
+    test_trie_lcrs()
+    test_trie_array()
+    test_trie_list()
+    test_trie_comparison()
