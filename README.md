@@ -22,6 +22,13 @@ A Python implementation of fundamental data structures with comprehensive test c
   - [7. Tries](#7-tries)
     - [7.1 Trie Operations](#71-trie-operations)
     - [7.2 Implementation Comparison](#72-implementation-comparison)
+  - [8. Graphs](#8-graphs)
+    - [8.1 Graph Operations](#81-graph-operations)
+    - [8.2 Topological Sort](#82-topological-sort)
+    - [8.3 Shortest Path (Dijkstra's Algorithm)](#83-shortest-path-dijkstras-algorithm)
+    - [8.4 Minimum Spanning Tree (Prim's Algorithm)](#84-minimum-spanning-tree-prims-algorithm)
+    - [8.5 Implementation Comparison](#85-implementation-comparison)
+    - [8.6 Why No Node/Edge Classes?](#86-why-no-nodeedge-classes)
 - [Running Tests](#running-tests)
 - [Requirements](#requirements)
 
@@ -41,8 +48,10 @@ dsa/
     │   └── avl_tree.py         # AVL Tree (self-balancing BST)
     ├── heaps/
     │   └── binary_heap.py      # MinHeap and MaxHeap implementations
-    └── tries/
-        └── trie.py             # Trie implementations (4 variants)
+    ├── tries/
+    │   └── trie.py             # Trie implementations (4 variants)
+    └── graphs/
+        └── graph.py            # Graph implementations (Matrix and List)
 ```
 
 ## Data Structures
@@ -1576,6 +1585,1039 @@ trie_lcrs.insert("cat")
 trie_lcrs.insert("car")
 print(trie_lcrs.auto_complete("ca"))  # ['cat', 'car']
 ```
+
+### 8. Graphs
+
+A Graph is a non-linear data structure consisting of **vertices** (nodes) and **edges** (connections). Graphs are used to represent networks, relationships, and connections between entities.
+
+```
+Undirected Graph:              Directed Graph (Digraph):
+
+    A --- B                        A --→ B
+    |     |                        ↑     |
+    |     |                        |     ↓
+    C --- D --- E                  C ←-- D --→ E
+```
+
+**Graph Terminology:**
+
+| Term | Description |
+|------|-------------|
+| Vertex (Node) | A point in the graph |
+| Edge | Connection between two vertices |
+| Directed | Edges have direction (A → B ≠ B → A) |
+| Undirected | Edges are bidirectional (A — B = B — A) |
+| Weighted | Edges have associated values (costs/distances) |
+| Degree | Number of edges connected to a vertex |
+| Path | Sequence of vertices connected by edges |
+| Cycle | Path that starts and ends at the same vertex |
+| Connected | Path exists between every pair of vertices |
+
+**Two implementations with different trade-offs:**
+
+| Class | Storage | Space | Edge Check | Get Neighbors | Best For |
+|-------|---------|-------|------------|---------------|----------|
+| `GraphAdjMatrix` | V×V matrix | O(V²) | O(1) | O(V) | Dense graphs |
+| `GraphAdjList` | Dict of lists | O(V + E) | O(degree) | O(degree) | Sparse graphs |
+
+#### 8.1 Graph Operations
+
+**Time Complexity (V = vertices, E = edges):**
+
+| Operation | Adjacency Matrix | Adjacency List |
+|-----------|------------------|----------------|
+| `add_vertex()` | O(V) | O(1) |
+| `remove_vertex()` | O(V²) | O(V + E) |
+| `add_edge()` | O(1) | O(1) |
+| `remove_edge()` | O(1) | O(degree) |
+| `has_edge()` | O(1) | O(degree) |
+| `get_neighbors()` | O(V) | O(degree) |
+| `bfs()` / `dfs()` | O(V²) | O(V + E) |
+| `topological_sort()` | O(V²) | O(V + E) |
+| `has_cycle()` | O(V²) | O(V + E) |
+| `shortest_path()` | O(V² log V) | O((V + E) log V) |
+| `shortest_distance()` | O(V² log V) | O((V + E) log V) |
+| `minimum_spanning_tree()` | O(V² log V) | O((V + E) log V) |
+
+*degree = number of edges connected to a vertex*
+
+```
+Example:
+    A --- B --- C          Degrees:
+    |                      - A: degree = 2 (edges to B, D)
+    D                      - B: degree = 2 (edges to A, C)
+                           - C: degree = 1 (edge to B)
+                           - D: degree = 1 (edge to A)
+
+O(degree) means scanning through a vertex's neighbor list.
+For sparse graphs: degree ≈ small → O(degree) ≈ O(1)
+For dense graphs: degree ≈ V → O(degree) ≈ O(V)
+```
+
+**Adjacency List in Dense Graphs (E ≈ V²):**
+
+| Operation | Sparse (E << V²) | Dense (E ≈ V²) |
+|-----------|------------------|----------------|
+| `remove_vertex()` | O(V + E) | O(V²) |
+| `remove_edge()` | O(degree) | O(V) |
+| `has_edge()` | O(degree) | O(V) |
+| `bfs()` / `dfs()` | O(V + E) | O(V²) |
+| `topological_sort()` | O(V + E) | O(V²) |
+| `has_cycle()` | O(V + E) | O(V²) |
+| `shortest_path()` | O((V + E) log V) | O(V² log V) |
+| `minimum_spanning_tree()` | O((V + E) log V) | O(V² log V) |
+
+*In dense graphs, adjacency list loses its advantage over adjacency matrix.*
+
+**Adjacency Matrix Representation:**
+
+```
+Graph:                    Adjacency Matrix:
+    A --- B                     A   B   C   D
+    |     |               A  [  0   1   1   0  ]
+    |     |               B  [  1   0   0   1  ]
+    C --- D               C  [  1   0   0   1  ]
+                          D  [  0   1   1   0  ]
+
+matrix[i][j] = 1 means edge exists from vertex i to vertex j
+matrix[i][j] = 0 means no edge
+For weighted graphs, store the weight instead of 1
+```
+
+**Adjacency List Representation:**
+
+```
+Graph:                    Adjacency List:
+    A --- B               A: [B, C]
+    |     |               B: [A, D]
+    |     |               C: [A, D]
+    C --- D               D: [B, C]
+
+Each vertex stores a list of its neighbors
+For weighted graphs, store (neighbor, weight) tuples
+```
+
+**BFS (Breadth-First Search) - Level by level traversal:**
+
+```
+        A                 BFS from A: A → B → C → D → E
+       / \
+      B   C               Uses: Queue (FIFO)
+      |   |               Process: Visit all neighbors at current level
+      D   |                         before moving to next level
+       \ /
+        E
+
+Order: A, B, C, D, E (level by level)
+```
+
+```python
+def bfs(self, start: str) -> list[str]:
+    visited = set()
+    result = []
+    queue = deque([start])
+    visited.add(start)
+
+    while queue:
+        vertex = queue.popleft()      # FIFO - process in order added
+        result.append(vertex)
+
+        for neighbor in self.get_neighbors(vertex):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+
+    return result
+```
+
+**DFS (Depth-First Search) - Go deep before backtracking:**
+
+```
+        A                 DFS from A: A → B → D → E → C
+       / \
+      B   C               Uses: Stack (LIFO) or Recursion
+      |   |               Process: Go as deep as possible,
+      D   |                         then backtrack
+       \ /
+        E
+
+Order: A, B, D, E, C (deep first)
+```
+
+```python
+def dfs(self, start: str) -> list[str]:
+    visited = set()
+    result = []
+    stack = [start]
+
+    while stack:
+        vertex = stack.pop()          # LIFO - process most recent
+        if vertex not in visited:
+            visited.add(vertex)
+            result.append(vertex)
+
+            for neighbor in reversed(self.get_neighbors(vertex)):
+                if neighbor not in visited:
+                    stack.append(neighbor)
+
+    return result
+```
+
+**BFS vs DFS Comparison:**
+
+| Aspect | BFS | DFS |
+|--------|-----|-----|
+| Data structure | Queue | Stack/Recursion |
+| Order | Level by level | Deep then backtrack |
+| Shortest path | Yes (unweighted) | No |
+| Memory | O(V) worst case | O(V) worst case |
+| Use case | Shortest path, level order | Cycle detection, topological sort |
+
+**When to Mark Visited - BFS vs DFS:**
+
+```python
+# BFS: Mark BEFORE adding to queue (prevents duplicates)
+if neighbor not in visited:
+    visited.add(neighbor)      # Mark before enqueue
+    queue.append(neighbor)
+
+# DFS: Mark AFTER popping from stack (allows duplicates)
+vertex = stack.pop()
+if vertex not in visited:      # Check after pop
+    visited.add(vertex)        # Mark after pop
+```
+
+| Strategy | When to mark | Duplicates | Used by |
+|----------|--------------|------------|---------|
+| Mark before adding | When enqueueing/pushing | No | BFS (typically) |
+| Mark after removing | When dequeuing/popping | Possible | DFS (typically) |
+
+*Why the difference?* There's no fundamental requirement - both strategies work for both algorithms. DFS typically uses "mark after pop" because it mirrors recursive DFS, where we mark visited when entering a function (starting to process), not when adding to the call stack.
+
+*Both are correct.* "Mark before" is more memory efficient (no duplicates), but "mark after" follows the recursive pattern more naturally.
+
+**DFS "mark after pop" (current implementation):**
+
+```python
+stack.append(start)
+while stack:
+    vertex = stack.pop()
+    if vertex not in visited:      # Check after pop
+        visited.add(vertex)        # Mark after pop
+        result.append(vertex)
+        for neighbor in self.get_neighbors(vertex):
+            if neighbor not in visited:
+                stack.append(neighbor)  # May add duplicates
+```
+
+**DFS "mark before push" (more memory efficient):**
+
+```python
+visited.add(start)                 # Mark start before push
+stack.append(start)
+while stack:
+    vertex = stack.pop()
+    result.append(vertex)          # No check needed - already visited
+    for neighbor in self.get_neighbors(vertex):
+        if neighbor not in visited:
+            visited.add(neighbor)  # Mark before push - no duplicates
+            stack.append(neighbor)
+```
+
+The "mark before push" approach prevents the same vertex from being pushed multiple times, reducing memory usage.
+
+#### 8.2 Topological Sort
+
+Topological sorting is a linear ordering of vertices in a **Directed Acyclic Graph (DAG)** such that for every directed edge (u → v), vertex u comes **before** vertex v in the ordering.
+
+```
+Course Prerequisites (DAG):
+
+  Math → Physics → Quantum
+    ↓
+  Stats → ML
+
+Topological Order: Math → Stats → Physics → ML → Quantum
+(or: Math → Physics → Stats → ML → Quantum - multiple valid orders exist)
+
+Rule: Prerequisites must come before dependent courses.
+```
+
+**Requirements:**
+- Must be a **directed** graph
+- Must be **acyclic** (no cycles) - otherwise impossible
+
+```
+Valid (DAG):              Invalid (has cycle):
+  A → B → C                 A → B
+      ↓                     ↑   ↓
+      D                     D ← C
+
+Topological order exists   No valid ordering - cycle detected
+```
+
+**Common Use Cases:**
+
+| Use Case | Vertices | Edges |
+|----------|----------|-------|
+| Course scheduling | Courses | Prerequisites |
+| Build systems (Make, npm) | Tasks/packages | Dependencies |
+| Spreadsheet formulas | Cells | Cell references |
+| Compilation order | Source files | #include dependencies |
+| Task scheduling | Tasks | "must complete before" |
+
+**DFS-based Topological Sort (with cycle detection):**
+
+```python
+def topological_sort(self) -> list[str]:
+    visited = set()
+    rec_stack = set()      # Track current recursion path for cycle detection
+    result = []
+
+    for vertex in self.get_vertices():
+        if vertex not in visited:
+            if not self._topological_sort_dfs(vertex, visited, rec_stack, result):
+                return []      # Cycle detected
+
+    return result[::-1]        # Reverse for correct order
+
+def _topological_sort_dfs(
+    self, vertex: str, visited: set, rec_stack: set, result: list
+) -> bool:
+    """Helper for topological sort. Returns False if cycle detected."""
+    visited.add(vertex)
+    rec_stack.add(vertex)
+
+    for neighbor in self.get_neighbors(vertex):
+        if neighbor not in visited:
+            if not self._topological_sort_dfs(neighbor, visited, rec_stack, result):
+                return False
+        elif neighbor in rec_stack:
+            return False       # Cycle detected!
+
+    rec_stack.remove(vertex)
+    result.append(vertex)      # Add AFTER processing all neighbors
+    return True
+```
+
+**Why add vertex AFTER processing neighbors?**
+
+```
+DAG: A → B → C
+
+DFS from A:
+  Visit A → Visit B → Visit C
+  C has no neighbors → add C to result
+  B done processing → add B to result
+  A done processing → add A to result
+
+result = [C, B, A]
+reversed = [A, B, C]  ← Correct topological order!
+```
+
+**Time Complexity:**
+
+| Implementation | Time | Why |
+|----------------|------|-----|
+| Adjacency Matrix | O(V²) | get_neighbors is O(V) - must scan entire row |
+| Adjacency List | O(V + E) | get_neighbors is O(degree) - only existing edges |
+
+**Both implementations use identical logic:**
+
+```python
+# GraphAdjMatrix - O(V²)
+def topological_sort(self) -> list[str]:
+    ...
+    for vertex in self.get_vertices():        # O(V)
+        if vertex not in visited:
+            self._topological_sort_dfs(...)   # Each call: O(V) for get_neighbors
+
+def _topological_sort_dfs(self, vertex, ...):
+    for neighbor in self.get_neighbors(vertex):  # O(V) - scans entire row
+        ...
+
+# GraphAdjList - O(V + E)
+def topological_sort(self) -> list[str]:
+    ...
+    for vertex in self.get_vertices():        # O(V)
+        if vertex not in visited:
+            self._topological_sort_dfs(...)   # Each call: O(degree) for get_neighbors
+
+def _topological_sort_dfs(self, vertex, ...):
+    for neighbor in self.get_neighbors(vertex):  # O(degree) - only existing edges
+        ...
+```
+
+The code is identical - the time difference comes from `get_neighbors()`:
+- **Matrix**: Must check all V slots in the row → O(V) per vertex → O(V²) total
+- **List**: Only iterates existing neighbors → O(degree) per vertex → O(V + E) total
+
+**Usage:**
+
+```python
+from graphs.graph import GraphAdjList
+
+# Create a DAG
+dag = GraphAdjList(directed=True)
+dag.add_edge("Math", "Physics")
+dag.add_edge("Math", "Stats")
+dag.add_edge("Physics", "Quantum")
+dag.add_edge("Stats", "ML")
+
+print(dag.topological_sort())  # ['Math', 'Stats', 'ML', 'Physics', 'Quantum']
+
+# Cycle detection
+cyclic = GraphAdjList(directed=True)
+cyclic.add_edge("A", "B")
+cyclic.add_edge("B", "C")
+cyclic.add_edge("C", "A")      # Creates cycle
+
+print(cyclic.topological_sort())  # [] (empty = cycle detected)
+```
+
+**Cycle Detection with has_cycle():**
+
+While `topological_sort()` returns an empty list when a cycle is detected, you can also explicitly check for cycles using `has_cycle()`:
+
+```python
+from graphs.graph import GraphAdjList
+
+# DAG (no cycle)
+dag = GraphAdjList(directed=True)
+dag.add_edge("A", "B")
+dag.add_edge("B", "C")
+print(dag.has_cycle())  # False
+
+# Directed graph with cycle
+cyclic = GraphAdjList(directed=True)
+cyclic.add_edge("A", "B")
+cyclic.add_edge("B", "C")
+cyclic.add_edge("C", "A")  # Creates cycle A → B → C → A
+print(cyclic.has_cycle())  # True
+
+# Undirected graph with cycle
+undirected_cyclic = GraphAdjList(directed=False)
+undirected_cyclic.add_edge("A", "B")
+undirected_cyclic.add_edge("B", "C")
+undirected_cyclic.add_edge("C", "A")  # Creates cycle A - B - C - A
+print(undirected_cyclic.has_cycle())  # True
+
+# Undirected tree (no cycle)
+tree = GraphAdjList(directed=False)
+tree.add_edge("A", "B")
+tree.add_edge("A", "C")
+tree.add_edge("C", "D")
+print(tree.has_cycle())  # False
+```
+
+**has_cycle() vs topological_sort() for cycle detection (directed graphs only):**
+
+| Method | Returns | Use When |
+|--------|---------|----------|
+| `has_cycle()` | `bool` | Only need to know if cycle exists (works for both directed and undirected) |
+| `topological_sort()` | `[]` if cycle | Need ordering AND cycle check (directed graphs only) |
+
+For directed graphs, both use DFS with a recursion stack. `has_cycle()` is more explicit when you only care about cycle existence without needing the topological order.
+
+**Why topological_sort() doesn't call has_cycle() internally:**
+
+It may seem logical to call `has_cycle()` first, then build the topological order. However, this is less efficient:
+
+| Approach | Traversals | Time |
+|----------|------------|------|
+| Separate: `has_cycle()` then sort | 2 passes | 2 × O(V + E) |
+| Integrated (current) | 1 pass | 1 × O(V + E) |
+
+```python
+# Less efficient - two traversals
+def topological_sort(self):
+    if self.has_cycle():      # First traversal
+        return []
+    # ... build order ...     # Second traversal
+
+# More efficient - single traversal (current implementation)
+def topological_sort(self):
+    # Detect cycle AND build order in same DFS
+    for neighbor in self.get_neighbors(vertex):
+        if neighbor not in visited:
+            if not self._topological_sort_dfs(...):
+                return False  # Propagate cycle detection upward
+        elif neighbor in rec_stack:
+            return False      # Cycle detected
+```
+
+The integrated approach is better because:
+- **Single traversal** - does both cycle detection and ordering in one DFS pass
+- **Early termination** - stops immediately when cycle found
+- **No duplication** - both use the same DFS with `rec_stack` logic
+
+**Cycle Detection for Directed vs Undirected Graphs:**
+
+`has_cycle()` uses different algorithms depending on graph type:
+
+| Graph Type | Algorithm | How it detects cycles |
+|------------|-----------|----------------------|
+| Directed | Recursion stack | Back edge = neighbor in current recursion path |
+| Undirected | Parent tracking | Visited neighbor ≠ parent = cycle |
+
+**Why undirected needs a different algorithm:**
+
+In undirected graphs, edge A—B means both A→B and B→A. The recursion stack approach would falsely detect cycles:
+
+```
+Undirected: A --- B (no cycle)
+
+Recursion stack approach (wrong):
+  1. Visit A, rec_stack = {A}
+  2. Go to B, rec_stack = {A, B}
+  3. B's neighbor is A, A is in rec_stack
+  4. FALSE POSITIVE: Reports cycle!
+
+Parent tracking approach (correct):
+  1. Visit A, parent = None
+  2. Go to B, parent = A
+  3. B's neighbor is A, but A == parent
+  4. Skip (this is just the edge we came from)
+  5. No cycle detected ✓
+```
+
+```python
+# Directed: recursion stack
+def _has_cycle_directed_dfs(self, vertex, visited, rec_stack):
+    visited.add(vertex)
+    rec_stack.add(vertex)
+    for neighbor in self.get_neighbors(vertex):
+        if neighbor not in visited:
+            if self._has_cycle_directed_dfs(neighbor, visited, rec_stack):
+                return True
+        elif neighbor in rec_stack:
+            return True  # Back edge = cycle
+    rec_stack.remove(vertex)
+    return False
+
+# Undirected: parent tracking
+def _has_cycle_undirected_dfs(self, vertex, visited, parent):
+    visited.add(vertex)
+    for neighbor in self.get_neighbors(vertex):
+        if neighbor not in visited:
+            if self._has_cycle_undirected_dfs(neighbor, visited, vertex):
+                return True
+        elif neighbor != parent:
+            return True  # Visited neighbor that's not parent = cycle
+    return False
+```
+
+**Key differences between the two algorithms:**
+
+| Aspect | Directed | Undirected |
+|--------|----------|------------|
+| Tracking | `rec_stack` (set of vertices in current path) | `parent` (single vertex we came from) |
+| Cycle condition | `neighbor in rec_stack` | `neighbor != parent` |
+| Backtracking | Must remove from `rec_stack` | Not needed |
+| Memory | O(V) for rec_stack | O(1) for parent |
+
+**Why directed graphs need `rec_stack` instead of just `parent`:**
+
+```
+Directed graph:
+A → B → D
+↓       ↑
+C ------+
+
+DFS: A → B → D (backtrack) → A → C → D
+```
+
+| Step | vertex | rec_stack | visited | Action |
+|------|--------|-----------|---------|--------|
+| 1 | A | {A} | {A} | Visit A |
+| 2 | B | {A, B} | {A, B} | Visit B |
+| 3 | D | {A, B, D} | {A, B, D} | Visit D, no unvisited neighbors |
+| 4 | backtrack | {A, B} | {A, B, D} | Remove D from rec_stack |
+| 5 | backtrack | {A} | {A, B, D} | Remove B from rec_stack |
+| 6 | C | {A, C} | {A, B, D, C} | Visit C |
+| 7 | C→D | | | D visited but NOT in rec_stack → No cycle |
+
+If we only tracked `parent` (like undirected), step 7 would see D is visited and D ≠ parent(A), incorrectly reporting a cycle. The `rec_stack` correctly identifies that D is not in the current DFS path.
+
+**Why undirected graphs only need `parent`:**
+
+In undirected graphs, edges are bidirectional. If we reach a visited vertex that's not our immediate parent, it's always a cycle because:
+- There's only one path to each vertex in a tree (acyclic graph)
+- Finding another path to a visited vertex = cycle
+
+```
+Undirected:  A --- B --- C
+                   |
+                   D
+
+DFS from A: A → B → C (backtrack) → B → D
+- At C: neighbor B is visited, but B == parent → Skip (not a cycle)
+- At D: neighbor B is visited, but B == parent → Skip (not a cycle)
+- No cycle found ✓
+```
+
+#### 8.3 Shortest Path (Dijkstra's Algorithm)
+
+Dijkstra's algorithm finds the shortest path between vertices in a weighted graph with **non-negative edge weights**.
+
+```
+Weighted Graph:
+    A --4-- B --5-- D
+    |       |       |
+    2       1       2
+    |       |       |
+    C ------+------ E
+        8       10
+
+Shortest path from A to E:
+  A → C (2) → B (1) → D (5) → E (2) = 10
+  Path: ['A', 'C', 'B', 'D', 'E']
+```
+
+**How Dijkstra's Algorithm Works:**
+
+1. Initialize all distances to infinity, except source (distance = 0)
+2. Use a priority queue (min-heap) to always process the closest unvisited vertex
+3. For each neighbor, check if going through current vertex gives a shorter path
+4. Update distance and track the previous vertex if shorter path found
+5. Repeat until destination is reached or all reachable vertices are visited
+
+```python
+def shortest_path(self, from_vertex: str, to_vertex: str):
+    distances = {v: float("inf") for v in vertices}
+    distances[from_vertex] = 0
+    previous = {v: None for v in vertices}
+    pq = [(0, from_vertex)]  # (distance, vertex)
+    visited = set()
+
+    while pq:
+        current_dist, current = heapq.heappop(pq)
+
+        if current in visited:
+            continue
+        visited.add(current)
+
+        if current == to_vertex:
+            break  # Found shortest path
+
+        for neighbor, weight in get_neighbors_with_weights(current):
+            if neighbor not in visited:
+                new_dist = current_dist + weight
+                if new_dist < distances[neighbor]:
+                    distances[neighbor] = new_dist
+                    previous[neighbor] = current
+                    heapq.heappush(pq, (new_dist, neighbor))
+
+    # Reconstruct path from previous pointers
+    path = []
+    current = to_vertex
+    while current is not None:
+        path.append(current)
+        current = previous[current]
+    return distances[to_vertex], path[::-1]
+```
+
+**Early Termination Optimization:**
+
+The `if current == to_vertex: break` is an optimization. When we pop a vertex from the priority queue and it's not yet visited, we have the **guaranteed shortest path** to that vertex.
+
+```python
+if current == to_vertex:
+    break  # Found shortest path to destination, stop!
+```
+
+| Approach | When it stops | Use case |
+|----------|---------------|----------|
+| With `break` | When destination found | Single destination query |
+| Without `break` | When all vertices processed | Find shortest paths to ALL vertices |
+
+```
+Example: Graph A → B → C → D → E → ... → Z
+
+shortest_path("A", "C"):
+  - With break: Stops after processing C (3 vertices)
+  - Without break: Processes all 26 vertices
+```
+
+The algorithm is correct without this check, just slower for single-destination queries.
+
+**Time Complexity:**
+
+| Implementation | Time | Why |
+|----------------|------|-----|
+| Adjacency Matrix | O(V² log V) | O(V²) to check all edges, O(log V) per heap operation |
+| Adjacency List | O((V + E) log V) | O(V + E) to visit edges, O(log V) per heap operation |
+
+**Why use a priority queue (min-heap)?**
+
+Dijkstra's algorithm repeatedly needs to find the unvisited vertex with minimum distance:
+
+```python
+# With priority queue (current implementation)
+current = heapq.heappop(pq)       # O(log V) to extract min
+
+# With linear search
+min_dist = float("inf")
+for v in unvisited:               # O(V) scan every time
+    if distances[v] < min_dist:
+        min_dist = distances[v]
+        current = v
+```
+
+**Time Complexity Breakdown:**
+
+| Component | Linear Search | Priority Queue |
+|-----------|---------------|----------------|
+| Find minimum V times | O(V) × V = O(V²) | O(log V) × V = O(V log V) |
+| Edge relaxation (Matrix) | O(V²) | O(V² log V)* |
+| Edge relaxation (List) | O(E) | O(E log V)* |
+
+*Each edge relaxation may push to heap at O(log V) cost.
+
+**How to Calculate Total Time Complexity:**
+
+Total = Find Minimum + Edge Relaxation (take dominant term)
+
+*Linear Search:*
+```
+Matrix: O(V²) + O(V²) = O(2V²) = O(V²)
+List:   O(V²) + O(E)  = O(V² + E) ≈ O(V²)  # V² dominates
+```
+
+*Priority Queue:*
+```
+Matrix: O(V log V) + O(V² log V) = O(V² log V)      # V² log V dominates
+List:   O(V log V) + O(E log V)  = O((V + E) log V) # Factor out log V
+```
+
+**Total Time Complexity:**
+
+| Implementation | Linear Search | Priority Queue |
+|----------------|---------------|----------------|
+| Adjacency Matrix | O(V²) | O(V² log V) |
+| Adjacency List | O(V² + E) ≈ O(V²) | O((V + E) log V) |
+
+**When is linear search better?**
+
+For **dense graphs** (E ≈ V²):
+- Linear search: O(V²)
+- Priority queue: O(V² log V)
+
+Linear search avoids the log V factor, so for very dense graphs it can be faster in practice. However, for **sparse graphs** (E << V²), priority queue is significantly better: O((V + E) log V) vs O(V²).
+
+**Current implementation uses priority queue** because most real-world graphs are sparse, and the O((V + E) log V) complexity is generally preferred.
+
+**Limitations:**
+
+- Only works with **non-negative edge weights**
+- For negative weights, use Bellman-Ford algorithm
+- For unweighted graphs, BFS is simpler and equally efficient
+
+**Usage:**
+
+```python
+from graphs.graph import GraphAdjList
+
+graph = GraphAdjList(directed=False)
+graph.add_edge("A", "B", 4)
+graph.add_edge("A", "C", 2)
+graph.add_edge("B", "C", 1)
+graph.add_edge("B", "D", 5)
+graph.add_edge("C", "D", 8)
+graph.add_edge("D", "E", 2)
+
+distance, path = graph.shortest_path("A", "E")
+print(f"Distance: {distance}")  # 10
+print(f"Path: {path}")          # ['A', 'C', 'B', 'D', 'E']
+
+# Just get distance
+print(graph.shortest_distance("A", "D"))  # 8
+```
+
+#### 8.4 Minimum Spanning Tree (Prim's Algorithm)
+
+A **Minimum Spanning Tree (MST)** is a subset of edges that:
+- Connects all vertices
+- Has no cycles (forms a tree)
+- Has minimum total edge weight
+
+```
+Original Weighted Graph:          MST (total weight = 6):
+
+    A --4-- B                       A       B
+    |\     /|                       |      /
+    2  \1/  5                       2    1
+    |   X   |                       |  /
+    C --3-- D                       C --3-- D
+
+Edges: A-B(4), A-C(2),             MST edges: A-C(2), C-B(1), C-D(3)
+       B-C(1), B-D(5), C-D(3)      Total: 2 + 1 + 3 = 6
+```
+
+**How Prim's Algorithm Works:**
+
+1. Start from any vertex, mark it as visited
+2. Add all edges from visited vertices to the priority queue
+3. Pick the minimum weight edge that connects to an unvisited vertex
+4. Add that vertex to visited and its edge to MST
+5. Repeat until all vertices are visited
+
+```python
+def minimum_spanning_tree(self, start_vertex=None):
+    visited = set()
+    mst_edges = []
+    total_weight = 0
+
+    # Priority queue: (weight, from_vertex, to_vertex)
+    pq = [(0, start_vertex, start_vertex)]
+
+    while pq and len(visited) < vertex_count:
+        weight, from_v, to_v = heapq.heappop(pq)
+
+        if to_v in visited:
+            continue
+        visited.add(to_v)
+
+        # Add edge to MST (skip starting vertex's dummy edge)
+        if from_v != to_v:
+            mst_edges.append((from_v, to_v, weight))
+            total_weight += weight
+
+        # Add edges to unvisited neighbors
+        for neighbor, edge_weight in get_neighbors_with_weights(to_v):
+            if neighbor not in visited:
+                heapq.heappush(pq, (edge_weight, to_v, neighbor))
+
+    return total_weight, mst_edges
+```
+
+**Step-by-step example:**
+
+```
+Graph: A--4--B, A--2--C, B--1--C, B--5--D, C--3--D
+
+Step  | Pop from heap      | visited   | MST edges              | Add to heap
+------|--------------------|-----------|-----------------------|-------------
+1     | (0, A, A)          | {A}       | []                    | (4,A,B), (2,A,C)
+2     | (2, A, C)          | {A,C}     | [(A,C,2)]             | (1,C,B), (3,C,D)
+3     | (1, C, B)          | {A,C,B}   | [(A,C,2),(C,B,1)]     | (5,B,D)
+4     | (3, C, D)          | {A,C,B,D} | [(A,C,2),(C,B,1),(C,D,3)] | -
+Done! Total weight = 6
+```
+
+**Time Complexity:**
+
+| Implementation | Time | Same as Dijkstra |
+|----------------|------|------------------|
+| Adjacency Matrix | O(V² log V) | Yes |
+| Adjacency List | O((V + E) log V) | Yes |
+
+**MST vs Shortest Path:**
+
+| Aspect | MST (Prim's) | Shortest Path (Dijkstra's) |
+|--------|--------------|---------------------------|
+| Goal | Connect all vertices with min total weight | Find min distance between two vertices |
+| Output | Set of edges (tree) | Single path |
+| Considers | Edge weights only | Cumulative path distance |
+| Graph type | Undirected only | Directed or undirected |
+
+**Use cases:**
+- Network design (minimum cable to connect all computers)
+- Circuit design
+- Cluster analysis
+- Approximation algorithms for NP-hard problems
+
+**Usage:**
+
+```python
+from graphs.graph import GraphAdjList
+
+graph = GraphAdjList(directed=False)
+graph.add_edge("A", "B", 4)
+graph.add_edge("A", "C", 2)
+graph.add_edge("B", "C", 1)
+graph.add_edge("B", "D", 5)
+graph.add_edge("C", "D", 3)
+
+total_weight, edges = graph.minimum_spanning_tree()
+print(f"Total weight: {total_weight}")  # 6
+print(f"MST edges: {edges}")            # [('A', 'C', 2), ('C', 'B', 1), ('C', 'D', 3)]
+```
+
+**Note:** MST only works for **undirected, connected graphs**. Returns `(0, [])` for directed graphs or disconnected graphs.
+
+#### 8.5 Implementation Comparison
+
+**Storage Visualization:**
+
+```
+Graph with 4 vertices, 3 edges:
+
+    A --- B
+    |
+    C --- D
+
+Adjacency Matrix (16 cells, mostly empty):
+      A  B  C  D
+   A [0, 1, 1, 0]     ← 4 cells per vertex
+   B [1, 0, 0, 0]        regardless of edges
+   C [1, 0, 0, 1]
+   D [0, 0, 1, 0]
+
+Adjacency List (only stores existing edges):
+   A: [B, C]          ← only 2 entries
+   B: [A]             ← only 1 entry
+   C: [A, D]          ← only 2 entries
+   D: [C]             ← only 1 entry
+```
+
+**Space Complexity:**
+
+| Implementation | Space | Why |
+|----------------|-------|-----|
+| Matrix | O(V²) | Always V×V array, regardless of edges |
+| List | O(V + E) | Only stores existing vertices and edges |
+
+**Dense vs Sparse Graphs:**
+
+```
+Dense Graph (E ≈ V²):           Sparse Graph (E << V²):
+Many connections                Few connections
+
+  A---B---C                       A     B
+  |\ /|\ /|                       |
+  | X | X |                       C --- D --- E
+  |/ \|/ \|                             |
+  D---E---F                             F
+
+Matrix efficient:               List efficient:
+- Few wasted cells              - Matrix would waste space
+- O(1) edge check useful        - O(V + E) << O(V²)
+```
+
+**When to use which:**
+
+| Scenario | Best Choice | Why |
+|----------|-------------|-----|
+| Dense graph (E ≈ V²) | `GraphAdjMatrix` | Little wasted space, O(1) edge lookup |
+| Sparse graph (E << V²) | `GraphAdjList` | Memory efficient, O(V + E) traversal |
+| Frequent edge existence checks | `GraphAdjMatrix` | O(1) vs O(degree) |
+| Frequent neighbor iteration | `GraphAdjList` | O(degree) vs O(V) to get neighbors |
+| Small number of vertices | `GraphAdjMatrix` | Simple, fast edge operations |
+| Large graph, few edges | `GraphAdjList` | Memory savings significant |
+| Social network (sparse) | `GraphAdjList` | Millions of users, few connections each |
+| Flight routes (dense) | `GraphAdjMatrix` | Many airports, most have direct flights |
+
+**Usage:**
+
+```python
+from graphs.graph import GraphAdjMatrix, GraphAdjList
+
+# Adjacency List (recommended for most cases)
+graph = GraphAdjList(directed=False)
+graph.add_edge("A", "B")
+graph.add_edge("A", "C")
+graph.add_edge("B", "D")
+graph.add_edge("C", "D")
+
+print(graph.get_neighbors("A"))      # ['B', 'C']
+print(graph.bfs("A"))                # ['A', 'B', 'C', 'D']
+print(graph.dfs("A"))                # ['A', 'B', 'D', 'C']
+print(graph.has_path("A", "D"))      # True
+
+# Adjacency Matrix
+matrix = GraphAdjMatrix(directed=False)
+for v in ["A", "B", "C", "D"]:
+    matrix.add_vertex(v)
+matrix.add_edge("A", "B")
+matrix.add_edge("B", "C")
+print(matrix.has_edge("A", "B"))     # True
+print(matrix.has_edge("A", "C"))     # False
+
+# Directed graph
+digraph = GraphAdjList(directed=True)
+digraph.add_edge("A", "B")           # A → B
+print(digraph.has_edge("A", "B"))    # True
+print(digraph.has_edge("B", "A"))    # False
+
+# Weighted graph
+weighted = GraphAdjList(directed=False)
+weighted.add_edge("A", "B", weight=5)
+weighted.add_edge("B", "C", weight=3)
+print(weighted.get_edge_weight("A", "B"))  # 5
+print(weighted.get_neighbors_with_weights("A"))  # [('B', 5)]
+```
+
+#### 8.6 Why No Node/Edge Classes?
+
+A common question is whether graphs should use dedicated `Node` and `Edge` classes instead of the current approach.
+
+**Current approach:**
+
+```python
+# Adjacency List: dict of (neighbor, weight) tuples
+self.adj_list: dict[str, list[tuple[str, float]]] = {}
+
+# Adjacency Matrix: 2D list with vertex mappings
+self.matrix: list[list[float]] = []
+self.vertex_map: dict[str, int] = {}
+```
+
+**Alternative with Node/Edge classes:**
+
+```python
+class Node:
+    def __init__(self, label: str):
+        self.label = label
+        self.data = None      # Additional metadata
+
+class Edge:
+    def __init__(self, from_node: Node, to_node: Node, weight: float = 1):
+        self.from_node = from_node
+        self.to_node = to_node
+        self.weight = weight
+        self.label = None     # Edge metadata
+```
+
+**Comparison:**
+
+| Aspect | Current Approach | Node/Edge Classes |
+|--------|------------------|-------------------|
+| Simplicity | Simpler, less code | More boilerplate |
+| Memory | Less overhead | Object overhead per node/edge |
+| Performance | Faster (direct access) | Slightly slower (object indirection) |
+| Extensibility | Limited | Easy to add attributes |
+| Node metadata | Not supported | `node.color`, `node.visited`, etc. |
+| Edge metadata | Only weight | `edge.label`, `edge.capacity`, etc. |
+| Textbook alignment | Matches DSA teaching | More software engineering style |
+
+**When Node/Edge classes are better:**
+
+| Scenario | Why |
+|----------|-----|
+| Need node metadata | Store color, state, timestamps on nodes |
+| Need edge metadata | Store labels, capacity (flow networks) |
+| Building reusable library | More extensible and maintainable |
+| Multigraphs | Multiple edges between same nodes |
+| Complex algorithms | Network flow, graph coloring |
+
+**When current approach is better:**
+
+| Scenario | Why |
+|----------|-----|
+| Educational/learning | Directly mirrors textbook adjacency matrix/list |
+| Simple algorithms | BFS, DFS, shortest path don't need metadata |
+| Performance-critical | Less object overhead, faster access |
+| Vertices are just labels | No need for node objects |
+
+**Why this repo uses the current approach:**
+
+1. **Textbook alignment** - Directly mirrors how adjacency matrix/list are taught in DSA courses
+2. **Focus on algorithms** - Emphasizes the algorithm logic, not OOP design patterns
+3. **Simpler to understand** - Less abstraction for learning purposes
+4. **Less code** - Easier to read and maintain
+
+For production graph libraries or complex applications requiring metadata, Node/Edge classes would be the better choice.
 
 ## Running Tests
 
