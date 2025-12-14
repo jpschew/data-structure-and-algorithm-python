@@ -21,6 +21,11 @@ from tries.trie import (
     test_trie_list,
     test_trie_comparison,
 )
+from graphs.graph import (
+    test_graph_adj_matrix,
+    test_graph_adj_list,
+    test_graph_comparison,
+)
 
 
 if __name__ == "__main__":
@@ -43,3 +48,6 @@ if __name__ == "__main__":
     test_trie_array()
     test_trie_list()
     test_trie_comparison()
+    test_graph_adj_matrix()
+    test_graph_adj_list()
+    test_graph_comparison()
